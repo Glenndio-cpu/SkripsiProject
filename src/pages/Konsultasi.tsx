@@ -350,18 +350,29 @@ const Konsultasi = () => {
       let errorMessage = "Gagal memproses permintaan. Silakan coba lagi.";
       let errorDetail = "";
       
-      if (error.message?.includes("API key") || error.message?.includes("dikonfigurasi")) {
+      // Deteksi error berdasarkan pesan error yang lebih spesifik
+      if (error.message?.includes("API key") || error.message?.includes("API_KEY_INVALID") || error.message?.includes("dikonfigurasi")) {
         errorMessage = "⚠️ Chatbot Belum Dikonfigurasi";
         errorDetail = "Silakan hubungi administrator untuk mengaktifkan layanan AI chatbot.\n\nUntuk konsultasi langsung:\n📞 WhatsApp: +62 896-5739-8733\n📧 Email: puskesmaswori@gmail.com";
-      } else if (error.message?.includes("quota")) {
-        errorMessage = "Layanan sedang sibuk. Silakan coba lagi dalam beberapa saat.";
-        errorDetail = "Jika mendesak, hubungi:\n📞 +62 896-5739-8733";
-      } else if (error.message?.includes("SAFETY")) {
-        errorMessage = "Pertanyaan Anda tidak dapat diproses. Silakan coba pertanyaan lain.";
+      } else if (error.message?.includes("QUOTA_EXCEEDED") || error.message?.includes("429") || error.message?.includes("Too Many Requests")) {
+        errorMessage = "⏳ Quota API Habis";
+        errorDetail = "Layanan chatbot AI telah mencapai batas penggunaan. Silakan coba lagi dalam beberapa menit atau hubungi admin untuk upgrade quota.\n\nUntuk konsultasi langsung:\n📞 WhatsApp: +62 896-5739-8733\n📧 Email: puskesmaswori@gmail.com";
+      } else if (error.message?.includes("MODEL_ERROR") || error.message?.includes("404") || error.message?.includes("not found")) {
+        errorMessage = "🔧 Model AI Tidak Tersedia";
+        errorDetail = "Sistem sedang dalam pemeliharaan. Silakan coba lagi dalam beberapa saat atau hubungi:\n📞 +62 896-5739-8733";
+      } else if (error.message?.includes("quota") || error.message?.includes("RESOURCE_EXHAUSTED")) {
+        errorMessage = "⏳ Layanan Sedang Sibuk";
+        errorDetail = "Silakan coba lagi dalam beberapa saat.\n\nJika mendesak, hubungi:\n📞 +62 896-5739-8733";
+      } else if (error.message?.includes("SAFETY") || error.message?.includes("safety")) {
+        errorMessage = "⚠️ Pertanyaan Tidak Dapat Diproses";
         errorDetail = "Pastikan pertanyaan Anda sesuai dengan topik kesehatan dan pencegahan penyakit.";
-      } else if (error.message?.includes("network") || error.message?.includes("fetch")) {
-        errorMessage = "Koneksi internet bermasalah.";
+      } else if (error.message?.includes("NetworkError") || error.message?.includes("Failed to fetch") || error.message?.toLowerCase().includes("network")) {
+        errorMessage = "🌐 Koneksi Internet Bermasalah";
         errorDetail = "Silakan periksa koneksi internet Anda dan coba lagi.";
+      } else {
+        // Tampilkan error detail untuk error yang tidak dikenali
+        errorMessage = "❌ Terjadi Kesalahan pada Chatbot";
+        errorDetail = `${error.message}\n\nUntuk bantuan langsung, hubungi:\n📞 +62 896-5739-8733\n📧 puskesmaswori@gmail.com`;
       }
 
       toast({

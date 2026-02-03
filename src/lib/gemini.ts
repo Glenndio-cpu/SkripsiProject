@@ -24,8 +24,8 @@ if (!apiKey) {
 // Inisialisasi Gemini AI dengan model 2.0 Flash
 const genAI = new GoogleGenerativeAI(apiKey);
 
-// Gunakan model gemini-2.0-flash-exp (experimental) atau gemini-2.0-flash
-const MODEL_NAME = "gemini-2.0-flash-exp";
+// Gunakan model gemini-2.0-flash (lebih stabil)
+const MODEL_NAME = "gemini-2.0-flash";
 
 /**
  * System prompt untuk mode publik (belum login)
@@ -244,16 +244,27 @@ Terima kasih atas pengertiannya! 🙏`;
     console.error("Error details:", {
       message: error.message,
       stack: error.stack,
-      response: error.response
+      response: error.response,
+      status: error.status
     });
     
-    // Handle berbagai jenis error
+    // Handle berbagai jenis error dengan lebih spesifik
     if (error.message?.includes("API_KEY_INVALID") || error.message?.includes("API key not valid")) {
       throw new Error("API key Gemini tidak valid. Silakan periksa kembali di file .env");
     }
     
+    // Error 429 - Too Many Requests (Quota habis)
+    if (error.status === 429 || error.message?.includes("429") || error.message?.includes("Too Many Requests")) {
+      throw new Error("QUOTA_EXCEEDED: Quota API Gemini habis. Silakan coba lagi dalam beberapa menit atau hubungi administrator.");
+    }
+    
     if (error.message?.includes("quota") || error.message?.includes("RESOURCE_EXHAUSTED")) {
-      throw new Error("Quota API Gemini habis. Silakan coba lagi nanti atau upgrade quota.");
+      throw new Error("QUOTA_EXCEEDED: Quota API Gemini habis. Silakan coba lagi nanti atau upgrade quota.");
+    }
+    
+    // Error 404 - Model tidak ditemukan
+    if (error.status === 404 || error.message?.includes("404") || error.message?.includes("not found")) {
+      throw new Error("MODEL_ERROR: Model AI tidak tersedia. Sistem sedang dalam pemeliharaan.");
     }
     
     if (error.message?.includes("SAFETY")) {
