@@ -15,10 +15,11 @@ const Footer: React.FC<FooterProps> = ({ scrollToTop }) => {
           <div className="md:col-span-1">
             <h3 className="text-xl font-bold mb-4 flex items-center">
               <FaClinicMedical className="mr-2" />
-              ViralCare AIDE
+              Puskesmas Wori Online
+
             </h3>
             <p className="text-healthcare-200 text-sm">
-              Asisten Virtual Untuk Rekomendasi & Pencegahan Penyakit Menular (Umum) di Masyarakat
+              Menyediakan Layanan Informasi Kesehatan
             </p>
           </div>
 
@@ -124,7 +125,7 @@ const Footer: React.FC<FooterProps> = ({ scrollToTop }) => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
                 <div>
-                  <p className="text-healthcare-200 hover:text-white transition-colors">support@viralcare-aide.com</p>
+                  <p className="text-healthcare-200 hover:text-white transition-colors">puskesmas.desawori@gmail.com</p>
                 </div>
               </div>
 
@@ -133,7 +134,7 @@ const Footer: React.FC<FooterProps> = ({ scrollToTop }) => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
                 <div>
-                  <p className="text-healthcare-200 hover:text-white transition-colors">+62 123 4567 890</p>
+                  <p className="text-healthcare-200 hover:text-white transition-colors">+62 896-5739-8733</p>
                 </div>
               </div>
 
@@ -154,10 +155,11 @@ const Footer: React.FC<FooterProps> = ({ scrollToTop }) => {
         {/* Footer Bottom */}
         <div className="border-t border-healthcare-700 mt-8 pt-6 text-center">
           <p className="text-healthcare-300">
-            © {new Date().getFullYear()} ViralCare AIDE. Project Final AI.
+            © {new Date().getFullYear()} CHATBOT PENDAMPING PUSKESMAS SEBAGAI INOVASI LAYANAN KESEHATAN DESA WORI MENGGUNAKAN
+WHATSAPP GATEWAY TERINTEGRASI RAG DAN LLM. Project Skripsi.
           </p>
           <p className="mt-2 text-sm text-healthcare-400">
-            Made by: Kelompok Gwen
+            Made by: Glenn, Dody, Ricko
           </p>
         </div>
       </div>

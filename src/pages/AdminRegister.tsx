@@ -1,0 +1,359 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Layout from '../components/layout/Layout';
+import { hashPassword } from '../lib/passwordUtils';
+
+// Kode akses rahasia untuk registrasi admin
+const ADMIN_ACCESS_CODE = 'PUSKESMAS2025ADMIN';
+
+const AdminRegister = () => {
+  const navigate = useNavigate();
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [accessCode, setAccessCode] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: ''
+  });
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    // Check if current user is admin
+    const userData = localStorage.getItem('user');
+    if (!userData) {
+      navigate('/login');
+      return;
+    }
+
+    const user = JSON.parse(userData);
+    if (user.role !== 'nurse') {
+      navigate('/');
+      return;
+    }
+  }, [navigate]);
+
+  const handleVerifyCode = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (accessCode === ADMIN_ACCESS_CODE) {
+      setIsAuthorized(true);
+      setError('');
+    } else {
+      setError('Kode akses salah! Silakan hubungi administrator.');
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+    setError('');
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    // Validasi
+    if (!formData.name || !formData.email || !formData.phone || !formData.password || !formData.confirmPassword) {
+      setError('Semua field harus diisi');
+      return;
+    }
+
+    // Validasi email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('Format email tidak valid');
+      return;
+    }
+
+    // Validasi nomor telepon
+    const phoneRegex = /^[0-9]{10,15}$/;
+    const cleanPhone = formData.phone.replace(/[\s\-\(\)]/g, '');
+    if (!phoneRegex.test(cleanPhone)) {
+      setError('Nomor telepon harus 10-15 digit angka');
+      return;
+    }
+
+    // Validasi password
+    if (formData.password.length < 6) {
+      setError('Password minimal 6 karakter');
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Password dan konfirmasi password tidak sama');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Hash password
+      const hashedPassword = await hashPassword(formData.password);
+      
+      // Cek apakah email sudah terdaftar
+      const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
+      const emailExists = existingUsers.some((user: any) => user.email === formData.email);
+      
+      if (emailExists) {
+        setError('Email sudah terdaftar!');
+        setIsLoading(false);
+        return;
+      }
+      
+      // Cek apakah nomor telepon sudah terdaftar
+      const phoneExists = existingUsers.some((user: any) => user.phone === cleanPhone);
+      
+      if (phoneExists) {
+        setError('Nomor telepon sudah terdaftar!');
+        setIsLoading(false);
+        return;
+      }
+      
+      // Simpan admin baru
+      const newAdmin = {
+        email: formData.email,
+        name: formData.name,
+        phone: cleanPhone,
+        password: hashedPassword,
+        createdAt: new Date().toISOString(),
+        role: 'nurse' // Admin/Petugas kesehatan
+      };
+      
+      existingUsers.push(newAdmin);
+      localStorage.setItem('users', JSON.stringify(existingUsers));
+      
+      setIsLoading(false);
+      alert(`✅ Admin ${formData.name} berhasil didaftarkan!`);
+      
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        password: '',
+        confirmPassword: ''
+      });
+      setAccessCode('');
+      setIsAuthorized(false);
+      
+    } catch (error) {
+      console.error('Registration error:', error);
+      setError('Terjadi kesalahan saat mendaftarkan admin. Silakan coba lagi.');
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Layout>
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-block bg-healthcare-100 p-4 rounded-full mb-4">
+            <span className="text-5xl">🔐</span>
+          </div>
+          <h1 className="text-3xl font-bold text-healthcare-800 mb-2">
+            Registrasi Admin Baru
+          </h1>
+          <p className="text-gray-600">
+            Tambahkan petugas kesehatan atau admin baru untuk Puskesmas Wori Online
+          </p>
+        </div>
+
+        {/* Access Code Verification */}
+        {!isAuthorized ? (
+          <div className="bg-white rounded-xl shadow-sm p-8">
+            <div className="mb-6">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">⚠️</span>
+                  <div>
+                    <h3 className="font-semibold text-yellow-800 mb-1">Akses Terbatas</h3>
+                    <p className="text-sm text-yellow-700">
+                      Anda memerlukan kode akses khusus untuk mendaftarkan admin baru.
+                      Hubungi super admin untuk mendapatkan kode.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <form onSubmit={handleVerifyCode} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Kode Akses Admin
+                  </label>
+                  <input
+                    type="password"
+                    value={accessCode}
+                    onChange={(e) => setAccessCode(e.target.value)}
+                    placeholder="Masukkan kode akses"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="w-full bg-healthcare-600 text-white px-6 py-3 rounded-lg hover:bg-healthcare-700 transition-colors font-medium"
+                >
+                  Verifikasi Kode Akses
+                </button>
+              </form>
+
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-700">
+                  <strong>Info:</strong> Kode akses bersifat rahasia dan hanya diberikan kepada 
+                  super admin Puskesmas Wori. Jangan bagikan kode ini kepada siapapun.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          // Registration Form
+          <div className="bg-white rounded-xl shadow-sm p-8">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">✅</span>
+                <p className="text-green-700 font-medium">Kode akses valid! Silakan lengkapi form registrasi.</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nama Lengkap <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="Dr. John Doe"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="admin@puskesmaswori.id"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nomor Telepon/WhatsApp <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="08123456789"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent"
+                  required
+                />
+                <p className="text-sm text-gray-500 mt-1">Format: 08xxxxxxxxxx (10-15 digit)</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Password <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Minimal 6 karakter"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Konfirmasi Password <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="Ketik ulang password"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                  {error}
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAuthorized(false);
+                    setAccessCode('');
+                  }}
+                  className="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="flex-1 bg-healthcare-600 text-white px-6 py-3 rounded-lg hover:bg-healthcare-700 transition-colors font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? 'Mendaftarkan...' : 'Daftarkan Admin'}
+                </button>
+              </div>
+            </form>
+
+            <div className="mt-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+              <p className="text-sm text-purple-700">
+                <strong>Role:</strong> Admin yang didaftarkan akan memiliki role "nurse" dan dapat
+                mengakses Dashboard Admin, Kelola Pasien, dan Broadcast WhatsApp.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Back Button */}
+        <div className="mt-6 text-center">
+          <button
+            onClick={() => navigate('/admin/dashboard')}
+            className="text-healthcare-600 hover:text-healthcare-800 font-medium"
+          >
+            ← Kembali ke Dashboard
+          </button>
+        </div>
+      </div>
+    </Layout>
+  );
+};
+
+export default AdminRegister;

@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaHeartbeat, FaTimes, FaPaperPlane } from 'react-icons/fa';
 import { useToast } from '@/hooks/use-toast';
+import { getGeminiResponse, type ChatMessage } from '../lib/gemini';
+import { trackConsultation } from '../lib/userActivityTracking';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -12,30 +14,40 @@ const AIAssistant = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
   const [conversation, setConversation] = useState<Message[]>([
     { 
       role: 'assistant', 
-      content: 'Halo! Saya asisten virtual ViralCare AIDE. Bagaimana saya bisa membantu Anda hari ini?' 
+      content: 'Halo! Saya Chatbot Puskesmas Wori. Bagaimana saya bisa membantu Anda hari ini?' 
     }
   ]);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const apiKey = "AIzaSyB99ZE7EXffykao5fgbCbpLf-ODcnotcWU";
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+  // Check login status
+  useEffect(() => {
+    const checkLoginStatus = () => {
+      const user = localStorage.getItem('user');
+      setIsUserLoggedIn(!!user);
+    };
+    
+    checkLoginStatus();
+    
+    // Listen for login/logout events
+    window.addEventListener('userUpdated', checkLoginStatus);
+    window.addEventListener('storage', checkLoginStatus);
+    
+    return () => {
+      window.removeEventListener('userUpdated', checkLoginStatus);
+      window.removeEventListener('storage', checkLoginStatus);
+    };
+  }, []);
 
   useEffect(() => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [conversation]);
-
-  const formatAIResponse = (response: string, isFirstMessage: boolean) => {
-    if (isFirstMessage) {
-      return `Halo! Saya ViralCare AIDE, siap membantu Anda.\n\n**Rekomendasi:**\n${response}\n\n**Manfaat:**\n[manfaat details]\n\n**Resiko:**\n[resiko details]\n\n**Pencegahan:**\n[pencegahan details]\n\n**Rangkuman:**\n[rangkuman]`;
-    } else {
-      return `Kalau seperti itu Anda harus melakukan:\n\n**Rekomendasi:**\n${response}\n\n**Manfaat:**\n[manfaat details]\n\n**Resiko:**\n[resiko details]\n\n**Pencegahan:**\n[pencegahan details]\n\n**Rangkuman:**\n[rangkuman]`;
-    }
-  };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,73 +57,57 @@ const AIAssistant = () => {
     const userMessage = message;
     setMessage('');
     
-    setConversation(prev => [...prev, { role: 'user', content: userMessage }]);
+    const newConversation: Message[] = [...conversation, { role: 'user', content: userMessage }];
+    setConversation(newConversation);
     setIsLoading(true);
 
     try {
-      const isFirstResponse = conversation.filter(m => m.role === 'assistant').length === 1;
-      const prompt = isFirstResponse 
-        ? `Anda adalah asisten kesehatan bernama ViralCare AIDE. Berikan respons pertama dengan "Halo! Saya ViralCare AIDE, siap membantu Anda." lalu berikan informasi dalam format berikut:
-        **Rekomendasi:** [rekomendasi spesifik]
-        **Manfaat:** [manfaat tindakan]
-        **Resiko:** [resiko jika tidak ditangani]
-        **Pencegahan:** [cara pencegahan]
-        **Rangkuman:** [poin penting]
-        Pertanyaan: ${userMessage}`
-        : `Sebagai ViralCare AIDE, berikan respons lanjutan dengan format:
-        Kalau seperti itu Anda harus melakukan:
-        **Rekomendasi:** [rekomendasi]
-        **Manfaat:** [manfaat]
-        **Resiko:** [resiko]
-        **Pencegahan:** [pencegahan]
-        **Rangkuman:** [rangkuman]
-        Pertanyaan: ${userMessage}`;
-
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: "user",
-              parts: [
-                {
-                  text: prompt
-                }
-              ]
-            }
-          ],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 1000,
+      // Filter hanya pesan user dan assistant yang bukan greeting
+      // Gemini API memerlukan pesan pertama harus dari 'user'
+      const chatMessages: ChatMessage[] = newConversation
+        .filter((msg, index) => {
+          // Hapus pesan greeting pertama (index 0) jika itu assistant message
+          if (index === 0 && msg.role === 'assistant') {
+            return false;
           }
-        }),
-      });
+          return true;
+        })
+        .map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }));
 
-      const data = await response.json();
+      console.log("📤 AIAssistant sending to Gemini:", chatMessages.length, "messages");
+
+      // Panggil Gemini API (mode otomatis disesuaikan dengan login status)
+      const aiResponse = await getGeminiResponse(chatMessages);
       
-      if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-        const aiResponse = data.candidates[0].content.parts[0].text;
-        setConversation(prev => [...prev, { 
-          role: 'assistant', 
-          content: aiResponse.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        }]);
-      } else {
-        throw new Error('Tidak mendapatkan respons yang valid dari Gemini');
+      setConversation(prev => [...prev, { 
+        role: 'assistant', 
+        content: aiResponse
+      }]);
+
+      // Track consultation jika user sudah login
+      if (isUserLoggedIn) {
+        trackConsultation();
       }
     } catch (error) {
       console.error('Error:', error);
+      
+      // Pesan berbeda berdasarkan status login
+      const errorMessage = isUserLoggedIn 
+        ? 'Maaf, saya mengalami kesulitan untuk memproses permintaan Anda saat ini. Silakan coba lagi.'
+        : 'Login terlebih dahulu untuk mendapatkan layanan konsultasi kesehatan!';
+      
       toast({
         title: "Error",
-        description: "Gagal mengirim pesan. Silakan coba lagi.",
+        description: errorMessage,
         variant: "destructive"
       });
       
       setConversation(prev => [...prev, { 
         role: 'assistant', 
-        content: 'Maaf, saya mengalami kesulitan untuk memproses permintaan Anda saat ini. Silakan coba lagi.' 
+        content: errorMessage
       }]);
     } finally {
       setIsLoading(false);
@@ -120,17 +116,148 @@ const AIAssistant = () => {
 
   // Helper component to render formatted messages
   const FormattedMessage = ({ content }: { content: string }) => {
-    const parts = content.split(/(\*\*.*?\*\*)/g);
-    
+    // Split content into lines first
+    const allLines = content.split('\n').filter(line => line.trim() !== '');
+    let currentHeaderNumber = 0;
+    let subItemCounter = 0;
+
     return (
-      <>
-        {parts.map((part, i) => {
-          if (part.startsWith('**') && part.endsWith('**')) {
-            return <strong key={i}>{part.slice(2, -2)}</strong>;
+      <div className="space-y-2">
+        {allLines.map((line, lineIndex) => {
+          // Clean ALL formatting markers from the line
+          let trimmedLine = line.trim()
+            .replace(/\*\*\*/g, '')  // Remove triple asterisks
+            .replace(/\*\*/g, '')    // Remove double asterisks
+            .replace(/\*/g, '')      // Remove single asterisks  
+            .replace(/__|__/g, '')   // Remove underscores
+            .trim();
+          
+          // Remove numbering from Gemini if pattern is: "number. CapitalLetter..."
+          // This preserves "1. +62..." but removes "1. Fokus..."
+          if (/^\d+\.\s+[A-Z]/.test(trimmedLine)) {
+            trimmedLine = trimmedLine.replace(/^\d+\.\s+/, '');
           }
-          return part;
+          
+          // Skip empty lines
+          if (!trimmedLine) return null;
+          
+          // Header detection
+          const isHeader = trimmedLine.match(/^(Pengobatan|Perawatan|Rekomendasi|Manfaat|Risiko|Resiko|Pencegahan|Penyebab|Gejala|Diagnosis|Komplikasi|Tanda|Ciri|Obat|Terapi|Penanganan|Penularan|Definisi|Apa itu|Cara|Langkah)[:\s]/i);
+          
+          // Important notes
+          const isImportant = trimmedLine.match(/^(Penting|Catatan|Perhatian|Ingat)[:\s!]/i);
+          
+          // Bold text detection (ends with :)
+          const isBoldText = trimmedLine.endsWith(':') && trimmedLine.length < 60;
+          
+          // Line pertama yang panjang (greeting) - TANPA NOMOR
+          const isFirstLine = lineIndex === 0 && trimmedLine.length > 50;
+          
+          // Disclaimer atau kalimat sebelum penutup - TANPA NOMOR
+          const isDisclaimer = trimmedLine.match(/^(Meskipun|Namun|Perlu diingat|Harap diingat|Catatan penting|Disclaimer)/i);
+          
+          // Line terakhir (closing) - TANPA NOMOR
+          // Deteksi kalimat penutup yang umum dari chatbot
+          const isLastLine = lineIndex === allLines.length - 1 && (
+            trimmedLine.match(/^(Semoga|Jika|Jangan|Tetap|Cepat|Salam|Sebagai|Saya|Terima kasih|Silakan|Jangan ragu|Ingat)/i) ||
+            trimmedLine.match(/(siap membantu|pertanyaan lain|butuhkan|memerlukan)/i)
+          );
+          
+          if (isHeader) {
+            currentHeaderNumber++;
+            subItemCounter = 0;
+            return (
+              <div 
+                key={lineIndex}
+                className="mt-4 first:mt-0"
+              >
+                <h4 className="font-bold text-healthcare-700 text-base pb-1.5 border-b border-healthcare-300 mb-2">
+                  <span className="text-healthcare-600 mr-2">{currentHeaderNumber}.</span>
+                  {trimmedLine.replace(/:\s*$/, '')}
+                </h4>
+              </div>
+            );
+          }
+          
+          if (isImportant) {
+            return (
+              <div 
+                key={lineIndex}
+                className="bg-yellow-50 border-l-3 border-yellow-400 p-2 rounded-r my-2"
+              >
+                <p className="text-yellow-800 font-semibold text-xs flex items-start gap-1.5">
+                  <span>⚠️</span>
+                  <span>{trimmedLine}</span>
+                </p>
+              </div>
+            );
+          }
+          
+          // Bold text - TIDAK DIBERI NOMOR
+          if (isBoldText) {
+            return (
+              <p 
+                key={lineIndex}
+                className="font-semibold text-gray-900 mt-2 mb-0.5 text-sm ml-4"
+              >
+                {trimmedLine}
+              </p>
+            );
+          }
+          
+          // Line pertama (greeting panjang) - TIDAK DIBERI NOMOR
+          if (isFirstLine) {
+            return (
+              <p 
+                key={lineIndex}
+                className="text-sm text-gray-800 leading-relaxed mb-2"
+              >
+                {trimmedLine}
+              </p>
+            );
+          }
+          
+          // Disclaimer - TIDAK DIBERI NOMOR
+          if (isDisclaimer) {
+            return (
+              <p 
+                key={lineIndex}
+                className="text-sm text-gray-700 leading-relaxed mt-3 italic"
+              >
+                {trimmedLine}
+              </p>
+            );
+          }
+          
+          // Line terakhir (closing) - TIDAK DIBERI NOMOR
+          if (isLastLine) {
+            return (
+              <p 
+                key={lineIndex}
+                className="text-sm text-gray-800 leading-relaxed mt-3 italic"
+              >
+                {trimmedLine}
+              </p>
+            );
+          }
+          
+          // SEMUA LINE LAINNYA DIBERI NOMOR
+          subItemCounter++;
+          return (
+            <div 
+              key={lineIndex}
+              className="flex items-start gap-2 ml-4 my-1.5"
+            >
+              <span className="font-semibold text-healthcare-600 min-w-[1.2rem] text-xs">
+                {subItemCounter}.
+              </span>
+              <p className="text-sm leading-relaxed text-gray-800 flex-1">
+                {trimmedLine}
+              </p>
+            </div>
+          );
         })}
-      </>
+      </div>
     );
   };
 
@@ -174,13 +301,33 @@ const AIAssistant = () => {
             }}
           >
             {/* Header - unchanged */}
-            <div className="bg-healthcare-700 text-white p-4 flex items-center">
-              <div className="bg-white/20 p-2 rounded-full mr-3">
-                <FaHeartbeat className="text-xl" />
+            <div className="bg-healthcare-700 text-white p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center">
+                  <div className="bg-white/20 p-2 rounded-full mr-3">
+                    <FaHeartbeat className="text-xl" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold">Puskesmas Wori Online</h3>
+                    <p className="text-xs opacity-80">Layanan Chatbot</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="text-white/80 hover:text-white transition-colors"
+                >
+                  <FaTimes className="text-xl" />
+                </button>
               </div>
-              <div>
-                <h3 className="font-bold">ViralCare AIDE</h3>
-                <p className="text-xs opacity-80">Asisten Kesehatan Virtual</p>
+              
+              {/* Mode Badge */}
+              <div className={`mt-2 px-3 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 ${
+                isUserLoggedIn 
+                  ? 'bg-green-500/20 text-green-100 border border-green-400/30' 
+                  : 'bg-blue-500/20 text-blue-100 border border-blue-400/30'
+              }`}>
+                <span>{isUserLoggedIn ? '💬' : 'ℹ️'}</span>
+                <span>Mode: {isUserLoggedIn ? 'Konsultasi' : 'Info Puskesmas'}</span>
               </div>
             </div>
             

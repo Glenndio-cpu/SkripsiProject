@@ -8,25 +8,25 @@ const Index = () => {
       <div className="animate-fade-in">
         <section className="bg-gradient-to-b from-healthcare-100 to-white p-8 rounded-xl shadow-sm mb-8">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-healthcare-800 mb-4">ViralCare AIDE</h1>
+            <h1 className="text-4xl md:text-5xl font-bold text-healthcare-800 mb-4">Puskesmas Wori Online</h1>
             <p className="text-xl text-healthcare-700 mb-6">
-              Asisten Virtual Untuk Rekomendasi & Pencegahan Penyakit Menular di Masyarakat
+              Chatbot Pendamping Puskesmas Sebagai Inovasi Layanan Kesehatan Desa Wori Menggunakan
+Whatsapp Gateway Terintegrasi RAG DAN LLM
+
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link 
                 to="/konsultasi" 
                 className="bg-healthcare-600 text-white px-6 py-3 rounded-lg hover:bg-healthcare-700 transition-colors"
               >
-                Mulai Konsultasi
+                Layanan Chatbot
               </Link>
-              <a 
-                href="https://www.who.int/" 
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link 
+                to="/penyakit"
                 className="bg-white text-healthcare-700 border border-healthcare-300 px-6 py-3 rounded-lg hover:bg-healthcare-50 transition-colors"
               >
                 Pelajari Lebih Lanjut
-              </a>
+              </Link>
             </div>
           </div>
         </section>
@@ -95,7 +95,7 @@ const Index = () => {
         <section className="mb-12">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-healthcare-800">Fitur Utama</h2>
-            <p className="text-gray-600 mt-2">Temukan manfaat menggunakan ViralCare AIDE</p>
+            <p className="text-gray-600 mt-2">Temukan manfaat menggunakan Puskesmas Wori Online</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -119,7 +119,7 @@ const Index = () => {
               <div className="text-4xl mb-4">🦠</div>
               <h3 className="text-xl font-semibold mb-2 text-healthcare-700">Info Penyakit</h3>
               <p className="text-gray-600">
-                Informasi lengkap tentang berbagai penyakit menular, gejala, dan pencegahannya.
+                Informasi lengkap tentang berbagai penyakit menular dan tidak menular, gejala, dan pencegahannya.
               </p>
             </div>
           </div>

@@ -55,7 +55,8 @@ const Layout = ({ children, hideAIAssistant = false }: LayoutProps) => {
         </main>
         
         <Footer scrollToTop={scrollToTop} />
-        {!hideAIAssistant && <AIAssistant />}
+        {/* AIAssistant dinonaktifkan - gunakan halaman Konsultasi untuk chat */}
+        {/* {!hideAIAssistant && <AIAssistant />} */}
       </div>
     </div>
   );
