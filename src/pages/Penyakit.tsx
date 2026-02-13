@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import Layout from '../components/layout/Layout';
 import { trackArticleRead } from '../lib/userActivityTracking';
+import { Bug, HeartPulse, AlertTriangle, Search } from 'lucide-react';
 
 type DiseaseType = 'menular' | 'tidak-menular';
 type SeverityLevel = 'ringan' | 'sedang' | 'berat';
 
 interface Disease {
   name: string;
-  emoji: string;
   symptoms: string;
   prevention: string;
   type: DiseaseType;
   severity: SeverityLevel;
-  transmission?: string; // Cara penularan (hanya untuk penyakit menular)
+  transmission?: string;
 }
 
 const Penyakit = () => {
@@ -30,7 +30,7 @@ const Penyakit = () => {
     // Penyakit Menular
     {
       name: "COVID-19",
-      emoji: "🦠",
+
       symptoms: "Demam, batuk kering, kelelahan, kehilangan indra penciuman dan perasa",
       prevention: "Vaksinasi, menjaga jarak, memakai masker, sering mencuci tangan",
       type: "menular",
@@ -39,7 +39,7 @@ const Penyakit = () => {
     },
     {
       name: "Influenza",
-      emoji: "🤧",
+
       symptoms: "Demam tinggi, sakit tenggorokan, nyeri otot, batuk, kelelahan",
       prevention: "Vaksinasi tahunan, mencuci tangan, menghindari kontak dengan orang sakit",
       type: "menular",
@@ -48,7 +48,7 @@ const Penyakit = () => {
     },
     {
       name: "Demam Berdarah",
-      emoji: "🦟",
+
       symptoms: "Demam tinggi, nyeri otot dan sendi, ruam, pendarahan ringan",
       prevention: "Menghilangkan genangan air, menggunakan kelambu, memakai repellent",
       type: "menular",
@@ -57,7 +57,7 @@ const Penyakit = () => {
     },
     {
       name: "Tuberculosis",
-      emoji: "🫁",
+
       symptoms: "Batuk berkepanjangan, batuk darah, nyeri dada, penurunan berat badan",
       prevention: "Vaksinasi BCG, ventilasi baik, deteksi dini dan pengobatan tepat",
       type: "menular",
@@ -66,7 +66,7 @@ const Penyakit = () => {
     },
     {
       name: "Cacar Air",
-      emoji: "😰",
+
       symptoms: "Ruam merah gatal, lecet kecil berisi cairan, demam, kelelahan",
       prevention: "Vaksinasi varicella, menghindari kontak dengan orang terinfeksi",
       type: "menular",
@@ -75,7 +75,7 @@ const Penyakit = () => {
     },
     {
       name: "Diare",
-      emoji: "🚽",
+
       symptoms: "Tinja encer, kram perut, mual, muntah, demam ringan",
       prevention: "Cuci tangan, konsumsi air bersih, makanan yang dimasak dengan benar",
       type: "menular",
@@ -84,7 +84,7 @@ const Penyakit = () => {
     },
     {
       name: "Malaria",
-      emoji: "🩸",
+
       symptoms: "Demam tinggi, menggigil, sakit kepala, mual, nyeri otot",
       prevention: "Kelambu berinsektisida, repellent, profilaksis untuk traveler",
       type: "menular",
@@ -93,7 +93,7 @@ const Penyakit = () => {
     },
     {
       name: "Hepatitis B",
-      emoji: "🟡",
+
       symptoms: "Kelelahan, mual, sakit perut, kulit kuning, urin gelap",
       prevention: "Vaksinasi, hindari berbagi jarum, hubungan seks aman",
       type: "menular",
@@ -102,7 +102,7 @@ const Penyakit = () => {
     },
     {
       name: "Campak",
-      emoji: "🤒",
+
       symptoms: "Demam tinggi, batuk, pilek, mata merah, ruam kulit",
       prevention: "Vaksinasi MMR, isolasi penderita, kebersihan tangan",
       type: "menular",
@@ -111,7 +111,7 @@ const Penyakit = () => {
     },
     {
       name: "Kolera",
-      emoji: "💦",
+
       symptoms: "Diare berat, dehidrasi, muntah, kram otot",
       prevention: "Air bersih, sanitasi baik, vaksin oral, masak makanan matang",
       type: "menular",
@@ -120,7 +120,7 @@ const Penyakit = () => {
     },
     {
       name: "Polio",
-      emoji: "🦵",
+
       symptoms: "Demam, kelelahan, muntah, nyeri otot, kelumpuhan",
       prevention: "Vaksinasi IPV/OPV, kebersihan tangan, sanitasi baik",
       type: "menular",
@@ -129,7 +129,7 @@ const Penyakit = () => {
     },
     {
       name: "HIV/AIDS",
-      emoji: "🩹",
+
       symptoms: "Demam berkepanjangan, penurunan berat badan, infeksi oportunistik",
       prevention: "Penggunaan kondom, tidak berbagi jarum, PrEP untuk risiko tinggi",
       type: "menular",
@@ -138,7 +138,7 @@ const Penyakit = () => {
     },
     {
       name: "Ebola",
-      emoji: "🧪",
+
       symptoms: "Demam mendadak, lemah, nyeri otot, sakit kepala, perdarahan",
       prevention: "Hindari kontak dengan pasien/benda terkontaminasi, karantina ketat",
       type: "menular",
@@ -147,7 +147,7 @@ const Penyakit = () => {
     },
     {
       name: "Zika",
-      emoji: "🦟",
+
       symptoms: "Demam ringan, ruam, nyeri sendi, konjungtivitis",
       prevention: "Kontrol nyamuk, repellent, hindari daerah endemik saat hamil",
       type: "menular",
@@ -156,7 +156,7 @@ const Penyakit = () => {
     },
     {
       name: "SARS",
-      emoji: "😷",
+
       symptoms: "Demam tinggi, batuk kering, sesak napas, sakit kepala",
       prevention: "Kebersihan tangan, masker, isolasi penderita, ventilasi baik",
       type: "menular",
@@ -165,7 +165,7 @@ const Penyakit = () => {
     },
     {
       name: "ISPA",
-      emoji: "🤧",
+
       symptoms: "Batuk, pilek, sakit tenggorokan, demam ringan, hidung tersumbat",
       prevention: "Cuci tangan, hindari asap rokok, jaga daya tahan tubuh, ventilasi baik",
       type: "menular",
@@ -174,7 +174,7 @@ const Penyakit = () => {
     },
     {
       name: "Common Cold",
-      emoji: "🤧",
+
       symptoms: "Pilek, bersin, hidung tersumbat, sakit tenggorokan ringan, kelelahan",
       prevention: "Cuci tangan sering, hindari kontak dengan penderita, jaga kebersihan",
       type: "menular",
@@ -183,7 +183,7 @@ const Penyakit = () => {
     },
     {
       name: "Diare - GEA",
-      emoji: "🚽",
+
       symptoms: "Diare cair, mual, muntah, kram perut, demam ringan, dehidrasi",
       prevention: "Cuci tangan dengan sabun, konsumsi air matang, makanan bersih dan higienis",
       type: "menular",
@@ -192,7 +192,7 @@ const Penyakit = () => {
     },
     {
       name: "Varicella",
-      emoji: "🔴",
+
       symptoms: "Ruam merah berisi cairan, gatal, demam, kelelahan, sakit kepala",
       prevention: "Vaksinasi varicella, hindari kontak dengan penderita, isolasi saat sakit",
       type: "menular",
@@ -201,7 +201,7 @@ const Penyakit = () => {
     },
     {
       name: "Pneumonia",
-      emoji: "🫁",
+
       symptoms: "Batuk berdahak, demam tinggi, sesak napas, nyeri dada, menggigil",
       prevention: "Vaksinasi pneumonia, hindari rokok, cuci tangan, jaga daya tahan tubuh",
       type: "menular",
@@ -210,7 +210,7 @@ const Penyakit = () => {
     },
     {
       name: "Dermatitis",
-      emoji: "🩹",
+
       symptoms: "Kulit merah, gatal, ruam, kulit kering dan mengelupas, bengkak",
       prevention: "Hindari alergen, jaga kelembaban kulit, gunakan sabun lembut, hindari garukan",
       type: "menular",
@@ -219,7 +219,7 @@ const Penyakit = () => {
     },
     {
       name: "Skabies",
-      emoji: "🐛",
+
       symptoms: "Gatal parah (terutama malam), ruam merah, luka bekas garuk, benjolan kecil",
       prevention: "Jaga kebersihan pribadi, hindari berbagi pakaian/handuk, cuci sprei rutin dengan air panas",
       type: "menular",
@@ -229,7 +229,7 @@ const Penyakit = () => {
     // Penyakit Tidak Menular
     {
       name: "Diabetes",
-      emoji: "🩺",
+
       symptoms: "Sering haus, sering buang air kecil, kelelahan, luka sulit sembuh",
       prevention: "Pola makan sehat, olahraga teratur, jaga berat badan ideal, hindari gula berlebih",
       type: "tidak-menular",
@@ -237,7 +237,7 @@ const Penyakit = () => {
     },
     {
       name: "Hipertensi",
-      emoji: "💔",
+
       symptoms: "Sakit kepala, pusing, sesak napas, nyeri dada, penglihatan kabur",
       prevention: "Kurangi garam, olahraga rutin, kelola stres, hindari rokok dan alkohol",
       type: "tidak-menular",
@@ -245,7 +245,7 @@ const Penyakit = () => {
     },
     {
       name: "Stroke",
-      emoji: "🧠",
+
       symptoms: "Kelemahan wajah/tangan, bicara tidak jelas, sakit kepala parah mendadak",
       prevention: "Kontrol tekanan darah, pola hidup sehat, hindari rokok, olahraga teratur",
       type: "tidak-menular",
@@ -253,7 +253,7 @@ const Penyakit = () => {
     },
     {
       name: "Jantung Koroner",
-      emoji: "❤️",
+
       symptoms: "Nyeri dada, sesak napas, kelelahan, jantung berdebar",
       prevention: "Diet rendah lemak, olahraga rutin, tidak merokok, kelola stres",
       type: "tidak-menular",
@@ -261,7 +261,7 @@ const Penyakit = () => {
     },
     {
       name: "Asma",
-      emoji: "🫁",
+
       symptoms: "Sesak napas, mengi, batuk (terutama malam), dada sesak",
       prevention: "Hindari pemicu (debu, asap), gunakan inhaler sesuai resep, jaga kebersihan",
       type: "tidak-menular",
@@ -269,7 +269,7 @@ const Penyakit = () => {
     },
     {
       name: "Kanker",
-      emoji: "🎗️",
+
       symptoms: "Bervariasi tergantung jenis (benjolan, penurunan berat badan, kelelahan)",
       prevention: "Pola hidup sehat, hindari rokok, deteksi dini, vaksinasi (HPV, Hepatitis B)",
       type: "tidak-menular",
@@ -277,7 +277,7 @@ const Penyakit = () => {
     },
     {
       name: "Osteoporosis",
-      emoji: "🦴",
+
       symptoms: "Tulang mudah patah, postur membungkuk, nyeri punggung",
       prevention: "Konsumsi kalsium & vitamin D, olahraga beban, hindari rokok & alkohol",
       type: "tidak-menular",
@@ -285,7 +285,7 @@ const Penyakit = () => {
     },
     {
       name: "Obesitas",
-      emoji: "⚖️",
+
       symptoms: "Kelebihan berat badan, kesulitan bernapas, nyeri sendi, kelelahan",
       prevention: "Pola makan seimbang, olahraga teratur, batasi kalori, hindari makanan olahan",
       type: "tidak-menular",
@@ -293,7 +293,7 @@ const Penyakit = () => {
     },
     {
       name: "Gagal Ginjal",
-      emoji: "🩻",
+
       symptoms: "Kelelahan, bengkak kaki/tangan, urin berbusa, mual, sesak napas",
       prevention: "Kontrol diabetes & hipertensi, minum air cukup, hindari obat berlebihan",
       type: "tidak-menular",
@@ -301,7 +301,7 @@ const Penyakit = () => {
     },
     {
       name: "PPOK",
-      emoji: "🚬",
+
       symptoms: "Batuk kronis, sesak napas, mengi, produksi dahak berlebih",
       prevention: "Berhenti merokok, hindari polusi udara, vaksinasi flu & pneumonia",
       type: "tidak-menular",
@@ -309,7 +309,7 @@ const Penyakit = () => {
     },
     {
       name: "DM Tipe 2",
-      emoji: "💉",
+
       symptoms: "Sering haus dan lapar, sering buang air kecil, penurunan berat badan, luka lambat sembuh",
       prevention: "Pola makan rendah gula, olahraga teratur, jaga berat badan, cek gula darah rutin",
       type: "tidak-menular",
@@ -317,7 +317,7 @@ const Penyakit = () => {
     },
     {
       name: "Hiperuricemia",
-      emoji: "🦶",
+
       symptoms: "Nyeri sendi (terutama jempol kaki), bengkak, kemerahan, kaku sendi",
       prevention: "Batasi makanan tinggi purin (jeroan, seafood), minum air cukup, hindari alkohol",
       type: "tidak-menular",
@@ -325,7 +325,7 @@ const Penyakit = () => {
     },
     {
       name: "Dislipidemia",
-      emoji: "🩸",
+
       symptoms: "Umumnya tanpa gejala, terdeteksi melalui tes darah (kolesterol tinggi)",
       prevention: "Diet rendah lemak jenuh, olahraga rutin, hindari makanan gorengan, cek kolesterol berkala",
       type: "tidak-menular",
@@ -333,7 +333,7 @@ const Penyakit = () => {
     },
     {
       name: "CKD",
-      emoji: "🫘",
+
       symptoms: "Kelelahan, bengkak kaki/mata, urin berbusa, mual, tekanan darah tinggi",
       prevention: "Kontrol diabetes & hipertensi, minum air cukup, hindari obat nefrotoksik, diet rendah protein",
       type: "tidak-menular",
@@ -341,7 +341,7 @@ const Penyakit = () => {
     },
     {
       name: "Anemia",
-      emoji: "🩸",
+
       symptoms: "Kelelahan, pucat, pusing, sesak napas ringan, jantung berdebar",
       prevention: "Konsumsi makanan kaya zat besi, vitamin B12 dan asam folat, suplementasi jika perlu",
       type: "tidak-menular",
@@ -349,7 +349,7 @@ const Penyakit = () => {
     },
     {
       name: "Gastritis",
-      emoji: "🫃",
+
       symptoms: "Nyeri ulu hati, mual, kembung, cepat kenyang, muntah",
       prevention: "Hindari makanan pedas/asam, makan teratur, kurangi stres, hindari alkohol dan NSAID",
       type: "tidak-menular",
@@ -357,7 +357,7 @@ const Penyakit = () => {
     },
     {
       name: "Migrain",
-      emoji: "🤕",
+
       symptoms: "Sakit kepala berdenyut (satu sisi), mual, sensitif cahaya/suara, gangguan penglihatan",
       prevention: "Hindari pemicu (stress, kurang tidur, makanan tertentu), olahraga teratur, tidur cukup",
       type: "tidak-menular",
@@ -365,7 +365,7 @@ const Penyakit = () => {
     },
     {
       name: "Alergi",
-      emoji: "🤧",
+
       symptoms: "Bersin, hidung gatal/tersumbat, mata berair, ruam kulit, gatal",
       prevention: "Hindari alergen (debu, serbuk sari, bulu hewan), jaga kebersihan rumah, gunakan antihistamin",
       type: "tidak-menular",
@@ -373,7 +373,7 @@ const Penyakit = () => {
     },
     {
       name: "Insomnia",
-      emoji: "😴",
+
       symptoms: "Sulit tidur, sering terbangun malam, bangun terlalu pagi, kelelahan siang hari",
       prevention: "Atur jadwal tidur teratur, hindari kafein/gadget sebelum tidur, relaksasi, olahraga teratur",
       type: "tidak-menular",
@@ -381,7 +381,7 @@ const Penyakit = () => {
     },
     {
       name: "Dispepsia",
-      emoji: "💊",
+
       symptoms: "Perut kembung, nyeri ulu hati, cepat kenyang, sendawa, mual",
       prevention: "Makan porsi kecil tapi sering, hindari makanan berlemak/pedas, kurangi stres, jangan berbaring setelah makan",
       type: "tidak-menular",
@@ -481,7 +481,7 @@ const Penyakit = () => {
     <Layout>
       <div className="max-w-6xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-center text-blue-800 border-b-2 border-blue-500 pb-3 mb-4">
-          🏥 Informasi Penyakit
+           Informasi Penyakit
         </h1>
         <p className="text-center italic text-gray-600 mb-8 text-lg">
           Berikut adalah informasi tentang berbagai penyakit menular dan tidak menular, gejalanya, dan cara pencegahannya.
@@ -489,7 +489,7 @@ const Penyakit = () => {
         
         {/* Filter Section */}
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
-          <h2 className="text-xl font-semibold mb-4 text-healthcare-700">Filter Penyakit</h2>
+          <h2 className="text-xl font-semibold mb-4 text-slate-600">Filter Penyakit</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Type Filter */}
@@ -500,7 +500,7 @@ const Penyakit = () => {
                   onClick={() => setSelectedType('semua')}
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                     selectedType === 'semua'
-                      ? 'bg-healthcare-600 text-white'
+                      ? 'bg-sky-500 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -510,21 +510,21 @@ const Penyakit = () => {
                   onClick={() => setSelectedType('menular')}
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                     selectedType === 'menular'
-                      ? 'bg-healthcare-600 text-white'
+                      ? 'bg-sky-500 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  🦠 Menular
+                   Menular
                 </button>
                 <button
                   onClick={() => setSelectedType('tidak-menular')}
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                     selectedType === 'tidak-menular'
-                      ? 'bg-healthcare-600 text-white'
+                      ? 'bg-sky-500 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  🏥 Tidak Menular
+                   Tidak Menular
                 </button>
               </div>
             </div>
@@ -537,7 +537,7 @@ const Penyakit = () => {
                   onClick={() => setSelectedSeverity('semua')}
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                     selectedSeverity === 'semua'
-                      ? 'bg-healthcare-600 text-white'
+                      ? 'bg-sky-500 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -580,7 +580,7 @@ const Penyakit = () => {
           {/* Results Count */}
           <div className="mt-4 pt-4 border-t border-gray-200">
             <p className="text-sm text-gray-600">
-              Menampilkan <span className="font-semibold text-healthcare-700">{filteredDiseases.length}</span> dari {diseases.length} penyakit
+              Menampilkan <span className="font-semibold text-slate-600">{filteredDiseases.length}</span> dari {diseases.length} penyakit
             </p>
           </div>
         </div>
@@ -597,8 +597,11 @@ const Penyakit = () => {
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
-                    <span className="text-3xl mr-3">{disease.emoji}</span>
-                    <h2 className="text-xl font-semibold text-healthcare-700">{disease.name}</h2>
+                    {disease.type === 'menular' 
+                      ? <Bug className="w-7 h-7 mr-3 text-blue-600" />
+                      : <HeartPulse className="w-7 h-7 mr-3 text-purple-600" />
+                    }
+                    <h2 className="text-xl font-semibold text-slate-600">{disease.name}</h2>
                   </div>
                 </div>
 
@@ -626,7 +629,7 @@ const Penyakit = () => {
                   <div className="mb-4">
                     <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Cara Penularan</h3>
                     <p className="mt-1 text-gray-700 flex items-start">
-                      <span className="mr-2">⚠️</span>
+                      <AlertTriangle className="w-4 h-4 mr-2 mt-0.5 text-yellow-500 flex-shrink-0" />
                       <span>{disease.transmission}</span>
                     </p>
                   </div>
@@ -644,7 +647,7 @@ const Penyakit = () => {
         {/* Empty State */}
         {filteredDiseases.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-6xl mb-4">🔍</div>
+            <Search className="w-16 h-16 mx-auto mb-4 text-gray-400" />
             <h3 className="text-xl font-semibold text-gray-700 mb-2">Tidak ada penyakit yang sesuai</h3>
             <p className="text-gray-600">Coba ubah filter untuk melihat hasil lainnya</p>
           </div>
@@ -652,7 +655,7 @@ const Penyakit = () => {
 
         {/* Horizontal Pandemic Roadmap */}
         <div>
-          <h2 className="text-2xl font-bold text-healthcare-700 border-b-2 border-healthcare-500 pb-4 text-center">
+          <h2 className="text-2xl font-bold text-slate-600 border-b-2 border-sky-500 pb-4 text-center">
             Sejarah Pandemi Mematikan
           </h2>
           
@@ -661,7 +664,7 @@ const Penyakit = () => {
             <button 
               onClick={handlePrev}
               disabled={currentPandemicIndex === 0}
-              className={`absolute left-0 top-1/2 transform -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-healthcare-600 text-white flex items-center justify-center ${currentPandemicIndex === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-healthcare-700'}`}
+              className={`absolute left-0 top-1/2 transform -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-sky-500 text-white flex items-center justify-center ${currentPandemicIndex === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-600'}`}
             >
               &lt;
             </button>
@@ -669,7 +672,7 @@ const Penyakit = () => {
             <button 
               onClick={handleNext}
               disabled={currentPandemicIndex >= pandemics.length - 4}
-              className={`absolute right-0 top-1/2 transform -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-healthcare-600 text-white flex items-center justify-center ${currentPandemicIndex >= pandemics.length - 4 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-healthcare-700'}`}
+              className={`absolute right-0 top-1/2 transform -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-sky-500 text-white flex items-center justify-center ${currentPandemicIndex >= pandemics.length - 4 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-600'}`}
             >
               &gt;
             </button>
@@ -692,18 +695,18 @@ const Penyakit = () => {
                   >
                     <div className="relative h-[300px]">
 					  {/* Vertical line */}
-					  <div className="absolute h-10 w-1 bg-healthcare-600 left-1/2 transform -translate-x-1/2 -bottom-16" />
+					  <div className="absolute h-10 w-1 bg-sky-500 left-1/2 transform -translate-x-1/2 -bottom-16" />
 
 					  {/* Timeline Dot + Text */}
 					  <div
 						className="absolute left-1/2 transform -translate-x-1/2"
 						style={{ bottom: `calc(-10px)` }}
 					  >
-						<div className="w-14 h-14 rounded-full bg-healthcare-600 border-4 border-white flex items-center justify-center mx-auto">
+						<div className="w-14 h-14 rounded-full bg-sky-500 border-4 border-white flex items-center justify-center mx-auto">
 						  <span className="text-white font-bold text-lg">{index + 1}</span>
 						</div>
 						<div className="text-center mt-4">
-						  <h3 className="font-semibold text-lg text-healthcare-800">
+						  <h3 className="font-semibold text-lg text-slate-700">
 							{pandemic.name}
 						  </h3>
 						  <p className="text-md text-gray-600 mt-1">{pandemic.year}</p>
@@ -723,7 +726,7 @@ const Penyakit = () => {
 						  href={pandemic.link} 
 						  target="_blank" 
 						  rel="noopener noreferrer"
-						  className="inline-block mt-4 px-4 py-2 bg-healthcare-100 text-healthcare-700 rounded-md text-md hover:bg-healthcare-200 transition-colors"
+						  className="inline-block mt-4 px-4 py-2 bg-sky-50 text-slate-600 rounded-md text-md hover:bg-sky-200 transition-colors"
 						>
 						  Pelajari Lebih Lanjut
 						</a>
@@ -736,13 +739,13 @@ const Penyakit = () => {
             </div>
 
             {/* Timeline Base Line */}
-            <div className="h-1 bg-healthcare-500 mx-14 rounded-full"></div> {/* Thicker line */}
+            <div className="h-1 bg-sky-500 mx-14 rounded-full"></div> {/* Thicker line */}
           </div>
         </div>
 
         {/* Help Section */}
-        <div className="mt-12 p-6 bg-healthcare-100 rounded-lg border border-healthcare-700">
-          <h2 className="text-2xl font-semibold mb-4 text-healthcare-700">Memerlukan Informasi Lebih Lanjut?</h2>
+        <div className="mt-12 p-6 bg-sky-50 rounded-lg border border-slate-600">
+          <h2 className="text-2xl font-semibold mb-4 text-slate-600">Memerlukan Informasi Lebih Lanjut?</h2>
           <p className="text-gray-700 mb-4">
             Jika Anda mencari informasi tentang penyakit menular lainnya atau ingin mengetahui lebih detail, 
             jangan ragu untuk bertanya kepada asisten virtual kami dengan mengklik ikon dokter di pojok kanan bawah layar.

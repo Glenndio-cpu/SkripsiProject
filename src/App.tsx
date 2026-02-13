@@ -19,7 +19,6 @@ import AdminDashboard from "./pages/AdminDashboard";
 import PatientManagement from "./pages/PatientManagement";
 import AdminRegister from "./pages/AdminRegister";
 import ProtectedRoute from "./components/ProtectedRoute";
-import TestGemini from "./pages/TestGemini";
 import { trackDailyActivity } from "./lib/userActivityTracking";
 
 const queryClient = new QueryClient();
@@ -99,8 +98,6 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-          {/* Test Gemini API - Public access for debugging */}
-          <Route path="/test-gemini" element={<TestGemini />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

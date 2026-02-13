@@ -12,7 +12,7 @@ const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string;
 
 if (!apiKey) {
   console.warn(
-    "⚠️ VITE_GEMINI_API_KEY belum diset di file .env\n" +
+    " VITE_GEMINI_API_KEY belum diset di file .env\n" +
     "Silakan:\n" +
     "1. Buat file .env di root project\n" +
     "2. Tambahkan: VITE_GEMINI_API_KEY=your_api_key_here\n" +
@@ -162,7 +162,7 @@ export async function getGeminiResponse(
 ): Promise<string> {
   if (!apiKey) {
     // Fallback response jika API key belum dikonfigurasi
-    return `⚠️ **Chatbot Belum Dikonfigurasi**
+    return ` **Chatbot Belum Dikonfigurasi**
 
 Maaf, layanan chatbot AI belum dikonfigurasi dengan benar.
 
@@ -173,11 +173,11 @@ Maaf, layanan chatbot AI belum dikonfigurasi dengan benar.
 4. Restart development server
 
 **Untuk sementara, Anda dapat:**
-📞 Hubungi langsung: +62 896-5739-8733 (WhatsApp)
-📧 Email: puskesmaswori@gmail.com
-🏥 Kunjungi: Puskesmas Wori, Jl. Raya Wori
+ Hubungi langsung: ${import.meta.env.VITE_PUSKESMAS_PHONE || '+62 896-5739-8733'} (WhatsApp)
+ Email: ${import.meta.env.VITE_PUSKESMAS_EMAIL || 'puskesmas.desawori@gmail.com'}
+ Kunjungi: ${import.meta.env.VITE_PUSKESMAS_ADDRESS || 'Puskesmas Wori, Jl. Raya Wori'}
 
-Terima kasih atas pengertiannya! 🙏`;
+Terima kasih atas pengertiannya! `;
   }
 
   // Tentukan mode efektif berdasarkan status login jika tidak dispesifikasi
@@ -197,7 +197,7 @@ Terima kasih atas pengertiannya! 🙏`;
       ? PUBLIC_SYSTEM_PROMPT 
       : CONSULTATION_SYSTEM_PROMPT;
 
-    console.log("🤖 Gemini API Call:", {
+    console.log("Gemini API Call:", {
       mode: effectiveMode,
       apiKeyConfigured: !!apiKey,
       apiKeyLength: apiKey?.length,
@@ -218,7 +218,7 @@ Terima kasih atas pengertiannya! 🙏`;
     // Pesan terakhir dari user
     const lastMessage = messages[messages.length - 1];
 
-    console.log("📤 Sending to Gemini:", lastMessage.content);
+    console.log("Sending to Gemini:", lastMessage.content);
 
     // Mulai chat dengan history
     const chat = model.startChat({
@@ -236,11 +236,11 @@ Terima kasih atas pengertiannya! 🙏`;
     const response = await result.response;
     const text = response.text();
 
-    console.log("✅ Gemini Response received:", text.substring(0, 100) + "...");
+    console.log("Gemini Response received:", text.substring(0, 100) + "...");
 
     return text;
   } catch (error: any) {
-    console.error("❌ Error calling Gemini API:", error);
+    console.error("Error calling Gemini API:", error);
     console.error("Error details:", {
       message: error.message,
       stack: error.stack,

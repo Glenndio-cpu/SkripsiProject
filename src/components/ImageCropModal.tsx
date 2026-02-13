@@ -187,7 +187,7 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
         </div>
 
         <div className="text-sm text-gray-600 mb-4">
-          💡 Tips: Drag gambar untuk memposisikan, gunakan slider untuk zoom in/out
+          Tips: Drag gambar untuk memposisikan, gunakan slider untuk zoom in/out
         </div>
 
         {/* Buttons */}
@@ -200,7 +200,7 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
           </button>
           <button
             onClick={handleCrop}
-            className="px-6 py-2 bg-healthcare-600 text-white rounded-lg hover:bg-healthcare-700 transition-colors"
+            className="px-6 py-2 bg-sky-500 text-white rounded-lg hover:bg-slate-600 transition-colors"
           >
             Crop & Simpan
           </button>

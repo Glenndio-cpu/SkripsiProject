@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import { hashPassword } from '../lib/passwordUtils';
+import { User, ShieldCheck, Info } from 'lucide-react';
 
 // Kode akses untuk mendaftar sebagai admin
-const ADMIN_REGISTRATION_CODE = 'PUSKESMAS2025ADMIN';
+const ADMIN_REGISTRATION_CODE = import.meta.env.VITE_ADMIN_REGISTRATION_CODE || '';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -128,7 +129,7 @@ const Register = () => {
       
       // Success message berbeda untuk admin
       if (registerAsAdmin) {
-        alert('✅ Akun admin berhasil dibuat! Anda dapat mengakses Dashboard Admin.');
+        alert('Akun admin berhasil dibuat! Anda dapat mengakses Dashboard Admin.');
         navigate('/admin/dashboard');
       } else {
         navigate('/'); // Redirect ke homepage setelah register
@@ -146,7 +147,7 @@ const Register = () => {
         <div className="w-full max-w-md">
           <div className="bg-white rounded-xl shadow-lg p-8">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-healthcare-800 mb-2">Buat Akun Baru</h1>
+              <h1 className="text-3xl font-bold text-slate-700 mb-2">Buat Akun Baru</h1>
               <p className="text-gray-600">Bergabung dengan Puskesmas Wori Online</p>
             </div>
 
@@ -167,12 +168,12 @@ const Register = () => {
                   }}
                   className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all ${
                     !registerAsAdmin
-                      ? 'bg-healthcare-600 text-white shadow-md'
+                      ? 'bg-sky-500 text-white shadow-md'
                       : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                   }`}
                 >
                   <div className="flex flex-col items-center">
-                    <span className="text-2xl mb-1">👤</span>
+                    <User className="w-6 h-6 mb-1" />
                     <span className="text-sm">Pasien</span>
                   </div>
                 </button>
@@ -189,7 +190,7 @@ const Register = () => {
                   }`}
                 >
                   <div className="flex flex-col items-center">
-                    <span className="text-2xl mb-1">👨‍⚕️</span>
+                    <ShieldCheck className="w-6 h-6 mb-1" />
                     <span className="text-sm">Admin/Petugas</span>
                   </div>
                 </button>
@@ -197,7 +198,7 @@ const Register = () => {
               {registerAsAdmin && (
                 <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
                   <p className="text-xs text-purple-700">
-                    ⚠️ Anda akan mendaftar sebagai <strong>Admin/Petugas Kesehatan</strong>. 
+                    <Info className="w-3 h-3 inline mr-1" /> Anda akan mendaftar sebagai <strong>Admin/Petugas Kesehatan</strong>. 
                     Kode akses diperlukan untuk verifikasi.
                   </p>
                 </div>
@@ -221,7 +222,7 @@ const Register = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent outline-none transition"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition"
                   placeholder="Masukkan nama lengkap"
                   required
                 />
@@ -237,7 +238,7 @@ const Register = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent outline-none transition"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition"
                   placeholder="nama@email.com"
                   required
                 />
@@ -253,7 +254,7 @@ const Register = () => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent outline-none transition"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition"
                   placeholder="08123456789 atau +628123456789"
                   required
                 />
@@ -286,7 +287,7 @@ const Register = () => {
                   />
                   <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
                     <p className="text-xs text-yellow-700">
-                      🔐 <strong>Kode akses rahasia</strong> - Hanya dimiliki oleh admin resmi. 
+                       <strong>Kode akses rahasia</strong> - Hanya dimiliki oleh admin resmi. 
                       Hubungi super admin Puskesmas Wori untuk mendapatkan kode.
                     </p>
                   </div>
@@ -303,7 +304,7 @@ const Register = () => {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent outline-none transition"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition"
                   placeholder="Minimal 6 karakter"
                   required
                 />
@@ -319,7 +320,7 @@ const Register = () => {
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent outline-none transition"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition"
                   placeholder="Masukkan password lagi"
                   required
                 />
@@ -329,11 +330,11 @@ const Register = () => {
                 <input type="checkbox" id="terms" className="mr-2 mt-1" required />
                 <label htmlFor="terms" className="text-sm text-gray-600">
                   Saya setuju menerima notifikasi broadcast kesehatan via WhatsApp dan menyetujui{' '}
-                  <a href="#" className="text-healthcare-600 hover:text-healthcare-700">
+                  <a href="#" className="text-sky-500 hover:text-slate-600">
                     Syarat & Ketentuan
                   </a>{' '}
                   serta{' '}
-                  <a href="#" className="text-healthcare-600 hover:text-healthcare-700">
+                  <a href="#" className="text-sky-500 hover:text-slate-600">
                     Kebijakan Privasi
                   </a>
                 </label>
@@ -342,7 +343,7 @@ const Register = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className={`w-full ${registerAsAdmin ? 'bg-purple-600 hover:bg-purple-700' : 'bg-healthcare-600 hover:bg-healthcare-700'} text-white py-3 rounded-lg transition-colors font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed`}
+                className={`w-full ${registerAsAdmin ? 'bg-purple-600 hover:bg-purple-700' : 'bg-sky-500 hover:bg-slate-600'} text-white py-3 rounded-lg transition-colors font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed`}
               >
                 {isLoading 
                   ? 'Mendaftar...' 
@@ -355,7 +356,7 @@ const Register = () => {
             <div className="mt-6 text-center">
               <p className="text-gray-600">
                 Sudah punya akun?{' '}
-                <Link to="/login" className="text-healthcare-600 hover:text-healthcare-700 font-semibold">
+                <Link to="/login" className="text-sky-500 hover:text-slate-600 font-semibold">
                   Masuk di sini
                 </Link>
               </p>

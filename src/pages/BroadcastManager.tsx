@@ -10,6 +10,7 @@ import {
   type BroadcastContact 
 } from '../lib/userBroadcast';
 import { FaDownload, FaCopy, FaWhatsapp, FaUsers, FaPhone, FaEnvelope } from 'react-icons/fa';
+import { Info } from 'lucide-react';
 
 const BroadcastManager = () => {
   const [contacts, setContacts] = useState<BroadcastContact[]>([]);
@@ -34,7 +35,7 @@ const BroadcastManager = () => {
 
   const handleDownloadCSV = () => {
     downloadContactsCSV();
-    alert('✅ File CSV berhasil didownload!');
+    alert('File CSV berhasil didownload!');
   };
 
   const handleCopyPhones = async () => {
@@ -43,7 +44,7 @@ const BroadcastManager = () => {
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 3000);
     } else {
-      alert('❌ Gagal menyalin nomor telepon');
+      alert('Gagal menyalin nomor telepon');
     }
   };
 
@@ -57,7 +58,7 @@ const BroadcastManager = () => {
     <Layout>
       <div className="max-w-7xl mx-auto p-4 md:p-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-healthcare-800 mb-2">
+          <h1 className="text-3xl font-bold text-slate-700 mb-2">
             Manajemen Broadcast WhatsApp
           </h1>
           <p className="text-gray-600">
@@ -117,7 +118,7 @@ const BroadcastManager = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <button
               onClick={handleDownloadCSV}
-              className="flex items-center justify-center gap-3 bg-healthcare-600 text-white px-6 py-3 rounded-lg hover:bg-healthcare-700 transition-colors"
+              className="flex items-center justify-center gap-3 bg-sky-500 text-white px-6 py-3 rounded-lg hover:bg-slate-600 transition-colors"
             >
               <FaDownload />
               Download File CSV
@@ -132,7 +133,7 @@ const BroadcastManager = () => {
               }`}
             >
               <FaCopy />
-              {copySuccess ? '✓ Tersalin!' : 'Copy Semua Nomor'}
+              {copySuccess ? ' Tersalin!' : 'Copy Semua Nomor'}
             </button>
           </div>
 
@@ -156,7 +157,7 @@ const BroadcastManager = () => {
               placeholder="Cari nama, nomor HP, atau email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent outline-none"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
             />
           </div>
 
@@ -209,7 +210,7 @@ const BroadcastManager = () => {
         {/* Info Box */}
         <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
           <p className="text-sm text-yellow-800">
-            <strong>ℹ️ Informasi Penting:</strong>
+            <strong><Info className="w-4 h-4 inline mr-1" /> Informasi Penting:</strong>
           </p>
           <ul className="text-sm text-yellow-700 mt-2 space-y-1">
             <li>• Data nomor telepon hanya untuk keperluan broadcast informasi kesehatan Puskesmas Wori</li>

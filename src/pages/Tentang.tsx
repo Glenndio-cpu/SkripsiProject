@@ -5,10 +5,10 @@ const Tentang = () => {
   return (
     <Layout>
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6 text-healthcare-700">Tentang Puskesmas Wori</h1>
+        <h1 className="text-3xl font-bold mb-6 text-slate-600">Tentang Puskesmas Wori</h1>
         
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
-          <h2 className="text-2xl font-semibold mb-4 text-healthcare-600">Visi & Misi</h2>
+          <h2 className="text-2xl font-semibold mb-4 text-sky-500">Visi & Misi</h2>
           <p className="text-gray-700 mb-4">
             Puskesmas Wori Online adalah Chatbot yang dirancang untuk memberikan informasi untuk pelayanan serta informasi kesehatan di masyarakat.
           </p>
@@ -21,7 +21,7 @@ const Tentang = () => {
         </div>
         
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
-          <h2 className="text-2xl font-semibold mb-4 text-healthcare-600">Bagaimana Kami Bekerja</h2>
+          <h2 className="text-2xl font-semibold mb-4 text-sky-500">Bagaimana Kami Bekerja</h2>
           <p className="text-gray-700 mb-4">
             Puskesmas Wori menggunakan teknologi AI Gemini 1.5 & Gemini 2.0 Flash untuk memproses pertanyaan Anda dan memberikan informasi yang relevan dan akurat.
           </p>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import { getAllUsers, type UserData } from '../lib/userBroadcast';
 import { getAllUserStats, type UserActivity } from '../lib/userActivityTracking';
+import { Download, Users, Search } from 'lucide-react';
 
 const PatientManagement = () => {
   const navigate = useNavigate();
@@ -114,7 +115,7 @@ const PatientManagement = () => {
     const updatedActivities = allActivities.filter(a => a.email !== patient.email);
     localStorage.setItem('userActivities', JSON.stringify(updatedActivities));
 
-    alert(`✅ Pasien ${patient.name} berhasil dihapus`);
+    alert(`Pasien ${patient.name} berhasil dihapus`);
     loadPatients();
     setShowDetailModal(false);
   };
@@ -144,7 +145,7 @@ const PatientManagement = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-healthcare-800 mb-2">Kelola Pasien</h1>
+              <h1 className="text-3xl font-bold text-slate-700 mb-2">Kelola Pasien</h1>
               <p className="text-gray-600">
                 Total {filteredPatients.length} dari {patients.length} pasien
               </p>
@@ -153,7 +154,7 @@ const PatientManagement = () => {
               onClick={exportToCSV}
               className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
             >
-              <span>📥</span>
+              <Download className="w-5 h-5" />
               <span>Export CSV</span>
             </button>
           </div>
@@ -172,7 +173,7 @@ const PatientManagement = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Nama, email, atau nomor HP..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
               />
             </div>
 
@@ -184,7 +185,7 @@ const PatientManagement = () => {
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value as any)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
               >
                 <option value="all">Semua Pasien</option>
                 <option value="with-phone">Dengan Nomor HP</option>
@@ -199,7 +200,7 @@ const PatientManagement = () => {
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           {filteredPatients.length === 0 ? (
             <div className="text-center py-12">
-              <span className="text-6xl">🔍</span>
+              <Users className="w-16 h-16 mx-auto text-gray-400" />
               <p className="text-gray-500 mt-4">Tidak ada pasien yang ditemukan</p>
             </div>
           ) : (
@@ -238,8 +239,8 @@ const PatientManagement = () => {
                                 className="w-10 h-10 rounded-full object-cover"
                               />
                             ) : (
-                              <div className="w-10 h-10 bg-healthcare-100 rounded-full flex items-center justify-center">
-                                <span className="text-healthcare-600 font-bold">
+                              <div className="w-10 h-10 bg-sky-50 rounded-full flex items-center justify-center">
+                                <span className="text-sky-500 font-bold">
                                   {patient.name.charAt(0).toUpperCase()}
                                 </span>
                               </div>
@@ -267,20 +268,20 @@ const PatientManagement = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex gap-3 text-xs">
                             <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                              💬 {activity?.consultationCount || 0}
+                              Konsultasi: {activity?.consultationCount || 0}
                             </span>
                             <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded">
-                              📖 {activity?.articlesRead.length || 0}
+                              Artikel: {activity?.articlesRead.length || 0}
                             </span>
                             <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
-                              📅 {activity?.activeDays.length || 0}
+                              Hari Aktif: {activity?.activeDays.length || 0}
                             </span>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <button
                             onClick={() => handleViewDetails(patient)}
-                            className="text-healthcare-600 hover:text-healthcare-900 font-medium"
+                            className="text-sky-500 hover:text-slate-800 font-medium"
                           >
                             Lihat Detail
                           </button>
@@ -317,11 +318,11 @@ const PatientManagement = () => {
                     <img
                       src={selectedPatient.profileImage}
                       alt={selectedPatient.name}
-                      className="w-20 h-20 rounded-full object-cover border-4 border-healthcare-100"
+                      className="w-20 h-20 rounded-full object-cover border-4 border-sky-50"
                     />
                   ) : (
-                    <div className="w-20 h-20 bg-healthcare-100 rounded-full flex items-center justify-center border-4 border-healthcare-200">
-                      <span className="text-healthcare-600 font-bold text-3xl">
+                    <div className="w-20 h-20 bg-sky-50 rounded-full flex items-center justify-center border-4 border-sky-200">
+                      <span className="text-sky-500 font-bold text-3xl">
                         {selectedPatient.name.charAt(0).toUpperCase()}
                       </span>
                     </div>
@@ -417,13 +418,13 @@ const PatientManagement = () => {
                     disabled={!selectedPatient.phone}
                     className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
                   >
-                    💬 Chat WhatsApp
+                     Chat WhatsApp
                   </button>
                   <button
                     onClick={() => handleDeletePatient(selectedPatient)}
                     className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
                   >
-                    🗑️ Hapus Pasien
+                     Hapus Pasien
                   </button>
                 </div>
               </div>

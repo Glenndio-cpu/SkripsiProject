@@ -103,7 +103,7 @@ const Login = () => {
         <div className="w-full max-w-md">
           <div className="bg-white rounded-xl shadow-lg p-8">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-healthcare-800 mb-2">Masuk ke Akun</h1>
+              <h1 className="text-3xl font-bold text-slate-700 mb-2">Masuk ke Akun</h1>
               <p className="text-gray-600">Selamat datang kembali di ViralCare AIDE</p>
             </div>
 
@@ -120,7 +120,7 @@ const Login = () => {
                 onClick={() => setSelectedRole('patient')}
                 className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
                   selectedRole === 'patient' 
-                    ? 'bg-healthcare-600 text-white border-healthcare-600' 
+                    ? 'bg-sky-500 text-white border-sky-500' 
                     : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                 }`}
               >
@@ -131,7 +131,7 @@ const Login = () => {
                 onClick={() => setSelectedRole('nurse')}
                 className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
                   selectedRole === 'nurse' 
-                    ? 'bg-healthcare-600 text-white border-healthcare-600' 
+                    ? 'bg-sky-500 text-white border-sky-500' 
                     : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                 }`}
               >
@@ -150,7 +150,7 @@ const Login = () => {
                   name="identifier"
                   value={formData.identifier}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent outline-none transition"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition"
                   placeholder="nama@email.com atau 08123456789"
                 />
               </div>
@@ -165,7 +165,7 @@ const Login = () => {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent outline-none transition"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition"
                   placeholder="Masukkan password"
                 />
               </div>
@@ -175,7 +175,7 @@ const Login = () => {
                   <input type="checkbox" className="mr-2 rounded" />
                   <span className="text-gray-600">Ingat saya</span>
                 </label>
-                <a href="#" className="text-healthcare-600 hover:text-healthcare-700">
+                <a href="#" className="text-sky-500 hover:text-slate-600">
                   Lupa password?
                 </a>
               </div>
@@ -183,7 +183,7 @@ const Login = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-healthcare-600 text-white py-3 rounded-lg hover:bg-healthcare-700 transition-colors font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="w-full bg-sky-500 text-white py-3 rounded-lg hover:bg-slate-600 transition-colors font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 {isLoading ? 'Memproses...' : 'Masuk'}
               </button>
@@ -192,7 +192,7 @@ const Login = () => {
             <div className="mt-6 text-center">
               <p className="text-gray-600">
                 Belum punya akun?{' '}
-                <Link to="/register" className="text-healthcare-600 hover:text-healthcare-700 font-semibold">
+                <Link to="/register" className="text-sky-500 hover:text-slate-600 font-semibold">
                   Daftar sekarang
                 </Link>
               </p>

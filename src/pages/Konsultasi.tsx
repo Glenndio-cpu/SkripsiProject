@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { sendConsultationEmail } from '../lib/emailService';
 import { getGeminiResponse, isGeminiConfigured, type ChatMessage } from '../lib/gemini';
 import { trackConsultation } from '../lib/userActivityTracking';
+import { AlertTriangle, Info, Stethoscope, Wrench, Phone as PhoneIcon, Mail, Loader2 } from 'lucide-react';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -201,7 +202,7 @@ const Konsultasi = () => {
   };
 
   const sendToWhatsApp = () => {
-    const phoneNumber = "+6289657398733";
+    const phoneNumber = import.meta.env.VITE_PUSKESMAS_WHATSAPP || '6289657398733';
     const message = `Berikut ringkasan konsultasi Anda dengan ViralCare AIDE:\n\n${summaryToSend}`;
     window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, '_blank');
     setShowWhatsAppModal(false);
@@ -239,15 +240,15 @@ const Konsultasi = () => {
       });
 
       if (emailSent) {
-        alert('✅ Notifikasi berhasil dikirim ke admin! Anda akan segera dihubungi via email.');
+        alert('Notifikasi berhasil dikirim ke admin! Anda akan segera dihubungi via email.');
         setShowEmailModal(false);
         setEmailData({ name: '', email: '' });
       } else {
-        alert('⚠️ Email service belum dikonfigurasi. Silakan gunakan WhatsApp untuk mengirim ringkasan.');
+        alert('Email service belum dikonfigurasi. Silakan gunakan WhatsApp untuk mengirim ringkasan.');
       }
     } catch (error) {
       console.error('Error sending email:', error);
-      alert('❌ Gagal mengirim email. Silakan coba lagi atau gunakan WhatsApp.');
+      alert('Gagal mengirim email. Silakan coba lagi atau gunakan WhatsApp.');
     } finally {
       setIsSendingEmail(false);
     }
@@ -256,7 +257,7 @@ const Konsultasi = () => {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log("🚀 handleSendMessage called with message:", message);
+    console.log("handleSendMessage called with message:", message);
     
     if (!message.trim()) {
       toast({
@@ -270,18 +271,18 @@ const Konsultasi = () => {
     const userMessage = message;
     setMessage('');
     
-    console.log("👤 User message:", userMessage);
+    console.log("User message:", userMessage);
     
     // Tambahkan pesan user ke conversation
     const newConversation: Message[] = [...conversation, { role: 'user', content: userMessage }];
     setConversation(newConversation);
     setIsLoading(true);
     
-    console.log("💬 Conversation updated, loading state:", true);
+    console.log("Conversation updated, loading state:", true);
 
     try {
       const { isHealthRelated, isClear } = analyzeQuery(userMessage);
-      console.log("🔍 Query analysis:", { isHealthRelated, isClear });
+      console.log("Query analysis:", { isHealthRelated, isClear });
 
       // Validasi lebih fleksibel untuk user yang sudah login
       // Jika sudah login (mode konsultasi), cukup cek apakah pertanyaan jelas
@@ -320,15 +321,15 @@ const Konsultasi = () => {
           content: msg.content
         }));
 
-      console.log("📤 Sending messages to Gemini:", chatMessages.length, "messages");
+      console.log("Sending messages to Gemini:", chatMessages.length, "messages");
 
       // Panggil Gemini 2.0 Flash
       const aiResponse = await getGeminiResponse(chatMessages);
-      console.log("✅ Received response from Gemini:", aiResponse?.substring(0, 100));
+      console.log("Received response from Gemini:", aiResponse?.substring(0, 100));
 
       // Format respons
       const formattedResponse = formatAIResponse(aiResponse);
-      console.log("✅ Formatted response:", formattedResponse?.substring(0, 100));
+      console.log("Formatted response:", formattedResponse?.substring(0, 100));
 
       // Tambahkan respons AI ke conversation
       setConversation(prev => [...prev, { 
@@ -342,9 +343,9 @@ const Konsultasi = () => {
       }
 
     } catch (error: any) {
-      console.error('❌ Error in handleSendMessage:', error);
-      console.error('❌ Error message:', error.message);
-      console.error('❌ Error stack:', error.stack);
+      console.error('Error in handleSendMessage:', error);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
       
       // Handle error message
       let errorMessage = "Gagal memproses permintaan. Silakan coba lagi.";
@@ -352,27 +353,27 @@ const Konsultasi = () => {
       
       // Deteksi error berdasarkan pesan error yang lebih spesifik
       if (error.message?.includes("API key") || error.message?.includes("API_KEY_INVALID") || error.message?.includes("dikonfigurasi")) {
-        errorMessage = "⚠️ Chatbot Belum Dikonfigurasi";
-        errorDetail = "Silakan hubungi administrator untuk mengaktifkan layanan AI chatbot.\n\nUntuk konsultasi langsung:\n📞 WhatsApp: +62 896-5739-8733\n📧 Email: puskesmaswori@gmail.com";
+        errorMessage = " Chatbot Belum Dikonfigurasi";
+        errorDetail = `Silakan hubungi administrator untuk mengaktifkan layanan AI chatbot.\n\nUntuk konsultasi langsung:\n WhatsApp: ${import.meta.env.VITE_PUSKESMAS_PHONE || '+62 896-5739-8733'}\n Email: ${import.meta.env.VITE_PUSKESMAS_EMAIL || 'puskesmas.desawori@gmail.com'}`;
       } else if (error.message?.includes("QUOTA_EXCEEDED") || error.message?.includes("429") || error.message?.includes("Too Many Requests")) {
-        errorMessage = "⏳ Quota API Habis";
-        errorDetail = "Layanan chatbot AI telah mencapai batas penggunaan. Silakan coba lagi dalam beberapa menit atau hubungi admin untuk upgrade quota.\n\nUntuk konsultasi langsung:\n📞 WhatsApp: +62 896-5739-8733\n📧 Email: puskesmaswori@gmail.com";
+        errorMessage = " Quota API Habis";
+        errorDetail = `Layanan chatbot AI telah mencapai batas penggunaan. Silakan coba lagi dalam beberapa menit atau hubungi admin untuk upgrade quota.\n\nUntuk konsultasi langsung:\n WhatsApp: ${import.meta.env.VITE_PUSKESMAS_PHONE || '+62 896-5739-8733'}\n Email: ${import.meta.env.VITE_PUSKESMAS_EMAIL || 'puskesmas.desawori@gmail.com'}`;
       } else if (error.message?.includes("MODEL_ERROR") || error.message?.includes("404") || error.message?.includes("not found")) {
-        errorMessage = "🔧 Model AI Tidak Tersedia";
-        errorDetail = "Sistem sedang dalam pemeliharaan. Silakan coba lagi dalam beberapa saat atau hubungi:\n📞 +62 896-5739-8733";
+        errorMessage = " Model AI Tidak Tersedia";
+        errorDetail = `Sistem sedang dalam pemeliharaan. Silakan coba lagi dalam beberapa saat atau hubungi:\n ${import.meta.env.VITE_PUSKESMAS_PHONE || '+62 896-5739-8733'}`;
       } else if (error.message?.includes("quota") || error.message?.includes("RESOURCE_EXHAUSTED")) {
-        errorMessage = "⏳ Layanan Sedang Sibuk";
-        errorDetail = "Silakan coba lagi dalam beberapa saat.\n\nJika mendesak, hubungi:\n📞 +62 896-5739-8733";
+        errorMessage = " Layanan Sedang Sibuk";
+        errorDetail = `Silakan coba lagi dalam beberapa saat.\n\nJika mendesak, hubungi:\n ${import.meta.env.VITE_PUSKESMAS_PHONE || '+62 896-5739-8733'}`;
       } else if (error.message?.includes("SAFETY") || error.message?.includes("safety")) {
-        errorMessage = "⚠️ Pertanyaan Tidak Dapat Diproses";
+        errorMessage = " Pertanyaan Tidak Dapat Diproses";
         errorDetail = "Pastikan pertanyaan Anda sesuai dengan topik kesehatan dan pencegahan penyakit.";
       } else if (error.message?.includes("NetworkError") || error.message?.includes("Failed to fetch") || error.message?.toLowerCase().includes("network")) {
-        errorMessage = "🌐 Koneksi Internet Bermasalah";
+        errorMessage = " Koneksi Internet Bermasalah";
         errorDetail = "Silakan periksa koneksi internet Anda dan coba lagi.";
       } else {
         // Tampilkan error detail untuk error yang tidak dikenali
-        errorMessage = "❌ Terjadi Kesalahan pada Chatbot";
-        errorDetail = `${error.message}\n\nUntuk bantuan langsung, hubungi:\n📞 +62 896-5739-8733\n📧 puskesmaswori@gmail.com`;
+        errorMessage = " Terjadi Kesalahan pada Chatbot";
+        errorDetail = `${error.message}\n\nUntuk bantuan langsung, hubungi:\n ${import.meta.env.VITE_PUSKESMAS_PHONE || '+62 896-5739-8733'}\n ${import.meta.env.VITE_PUSKESMAS_EMAIL || 'puskesmas.desawori@gmail.com'}`;
       }
 
       toast({
@@ -384,7 +385,7 @@ const Konsultasi = () => {
       // Tampilkan pesan error yang lebih ramah ke user
       const fullErrorMessage = errorDetail 
         ? `${errorMessage}\n\n${errorDetail}`
-        : `Maaf, terjadi kesalahan: ${errorMessage}\n\nSilakan coba lagi atau hubungi Puskesmas Wori di +62 896-5739-8733 untuk bantuan langsung.`;
+        : `Maaf, terjadi kesalahan: ${errorMessage}\n\nSilakan coba lagi atau hubungi Puskesmas Wori di ${import.meta.env.VITE_PUSKESMAS_PHONE || '+62 896-5739-8733'} untuk bantuan langsung.`;
 
       setConversation(prev => [...prev, { 
         role: 'assistant', 
@@ -392,7 +393,7 @@ const Konsultasi = () => {
       }]);
     } finally {
       setIsLoading(false);
-      console.log("✅ handleSendMessage completed, loading state:", false);
+      console.log("handleSendMessage completed, loading state:", false);
     }
   };
 
@@ -455,8 +456,8 @@ const Konsultasi = () => {
                 key={lineIndex}
                 className="mt-6 first:mt-0"
               >
-                <h3 className="font-bold text-healthcare-700 text-lg pb-2 border-b-2 border-healthcare-300 mb-3">
-                  <span className="text-healthcare-600 mr-2">{currentHeaderNumber}.</span>
+                <h3 className="font-bold text-slate-600 text-lg pb-2 border-b-2 border-sky-300 mb-3">
+                  <span className="text-sky-500 mr-2">{currentHeaderNumber}.</span>
                   {trimmedLine.replace(/:\s*$/, '')}
                 </h3>
               </div>
@@ -470,7 +471,7 @@ const Konsultasi = () => {
                 className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded-r-lg my-3"
               >
                 <p className="text-yellow-800 font-semibold text-sm flex items-start gap-2">
-                  <span className="text-lg">⚠️</span>
+                  <AlertTriangle className="w-5 h-5 flex-shrink-0" />
                   <span>{trimmedLine}</span>
                 </p>
               </div>
@@ -481,9 +482,9 @@ const Konsultasi = () => {
             return (
               <div 
                 key={lineIndex}
-                className="font-semibold text-healthcare-700 mt-4 mb-2 flex items-start gap-2"
+                className="font-semibold text-slate-600 mt-4 mb-2 flex items-start gap-2"
               >
-                <span className="text-healthcare-600">❓</span>
+                <span className="text-sky-500"></span>
                 <span>{trimmedLine}</span>
               </div>
             );
@@ -544,7 +545,7 @@ const Konsultasi = () => {
               key={lineIndex}
               className="flex items-start gap-3 ml-6 my-2"
             >
-              <span className="font-semibold text-healthcare-600 min-w-[1.5rem]">
+              <span className="font-semibold text-sky-500 min-w-[1.5rem]">
                 {subItemCounter}.
               </span>
               <p className="text-gray-800 leading-relaxed flex-1">
@@ -561,7 +562,7 @@ const Konsultasi = () => {
     <Layout hideAIAssistant={true}>
       <div className="animate-fade-in max-w-4xl mx-auto p-6">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-healthcare-800">Konsultasi Kesehatan</h1>
+          <h1 className="text-3xl font-bold text-slate-700">Konsultasi Kesehatan</h1>
           
           {/* Mode Badge */}
           <div className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 ${
@@ -569,7 +570,7 @@ const Konsultasi = () => {
               ? 'bg-green-100 text-green-800 border border-green-300' 
               : 'bg-blue-100 text-blue-800 border border-blue-300'
           }`}>
-            <span className="text-lg">{isUserLoggedIn ? '💬' : 'ℹ️'}</span>
+            <span className="text-lg">{isUserLoggedIn ? <Stethoscope className="w-5 h-5" /> : <Info className="w-5 h-5" />}</span>
             <span>Mode: {isUserLoggedIn ? 'Konsultasi' : 'Info Puskesmas'}</span>
           </div>
         </div>
@@ -578,14 +579,14 @@ const Konsultasi = () => {
         {!isApiConfigured && (
           <div className="mb-6 p-4 bg-yellow-50 border-2 border-yellow-400 rounded-lg shadow-md">
             <div className="flex items-start gap-3">
-              <span className="text-3xl">⚠️</span>
+              <AlertTriangle className="w-8 h-8 text-yellow-500 flex-shrink-0" />
               <div className="flex-1">
                 <h3 className="font-bold text-yellow-900 mb-2 text-lg">Chatbot AI Belum Dikonfigurasi</h3>
                 <p className="text-sm text-yellow-800 mb-3">
                   API Key Gemini belum diatur. Chatbot tidak dapat memberikan respons AI.
                 </p>
                 <div className="bg-yellow-100 border border-yellow-300 rounded p-3 mb-3 text-sm">
-                  <p className="font-semibold text-yellow-900 mb-2">📋 Untuk Admin/Developer:</p>
+                  <p className="font-semibold text-yellow-900 mb-2"><Wrench className="w-4 h-4 inline mr-1" /> Untuk Admin/Developer:</p>
                   <ol className="list-decimal list-inside space-y-1 text-yellow-800 ml-2">
                     <li>Buka: <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="underline hover:text-yellow-900">Google AI Studio</a></li>
                     <li>Login & klik "Create API Key" (GRATIS)</li>
@@ -596,10 +597,10 @@ const Konsultasi = () => {
                   </ol>
                 </div>
                 <div className="bg-white border border-yellow-300 rounded p-3 text-sm">
-                  <p className="font-semibold text-yellow-900 mb-1">📞 Untuk sementara, hubungi langsung:</p>
+                  <p className="font-semibold text-yellow-900 mb-1"><PhoneIcon className="w-4 h-4 inline mr-1" /> Untuk sementara, hubungi langsung:</p>
                   <p className="text-yellow-800">
-                    WhatsApp: <a href="https://wa.me/6289657398733" target="_blank" rel="noopener noreferrer" className="font-semibold underline hover:text-yellow-900">+62 896-5739-8733</a><br/>
-                    Email: <a href="mailto:puskesmaswori@gmail.com" className="font-semibold underline hover:text-yellow-900">puskesmaswori@gmail.com</a>
+                    WhatsApp: <a href={`https://wa.me/${import.meta.env.VITE_PUSKESMAS_WHATSAPP || '6289657398733'}`} target="_blank" rel="noopener noreferrer" className="font-semibold underline hover:text-yellow-900">{import.meta.env.VITE_PUSKESMAS_PHONE || '+62 896-5739-8733'}</a><br/>
+                    Email: <a href={`mailto:${import.meta.env.VITE_PUSKESMAS_EMAIL || 'puskesmas.desawori@gmail.com'}`} className="font-semibold underline hover:text-yellow-900">{import.meta.env.VITE_PUSKESMAS_EMAIL || 'puskesmas.desawori@gmail.com'}</a>
                   </p>
                 </div>
               </div>
@@ -611,7 +612,7 @@ const Konsultasi = () => {
         {!isUserLoggedIn && (
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-start gap-3">
-              <span className="text-2xl">🔒</span>
+              <Info className="w-6 h-6 text-blue-600 flex-shrink-0" />
               <div className="flex-1">
                 <h3 className="font-semibold text-blue-900 mb-1">Mode Terbatas</h3>
                 <p className="text-sm text-blue-800">
@@ -638,7 +639,7 @@ const Konsultasi = () => {
               <div
                 className={`inline-block rounded-lg px-4 py-3 max-w-[90%] ${
                   msg.role === 'user'
-                    ? 'bg-healthcare-600 text-white'
+                    ? 'bg-sky-500 text-white'
                     : 'bg-gray-100 border border-gray-200 text-gray-800'
                 }`}
               >
@@ -673,12 +674,12 @@ const Konsultasi = () => {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Ketik pertanyaan seputar kesehatan Anda..."
-              className="flex-1 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-healthcare-500"
+              className="flex-1 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sky-500"
               disabled={isLoading}
             />
             <motion.button
               type="submit"
-              className="bg-healthcare-600 text-white px-4 py-3 rounded-lg"
+              className="bg-sky-500 text-white px-4 py-3 rounded-lg"
               whileHover={{ backgroundColor: '#2563eb' }}
               whileTap={{ scale: 0.95 }}
               disabled={isLoading || !message.trim()}
@@ -746,7 +747,7 @@ const Konsultasi = () => {
         {showEmailModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 max-w-md w-full">
-              <h3 className="text-xl font-bold mb-4">📧 Kirim ke Email Admin</h3>
+              <h3 className="text-xl font-bold mb-4"><Mail className="w-5 h-5 inline mr-2" />Kirim ke Email Admin</h3>
               <p className="mb-4 text-gray-600">
                 Masukkan data Anda untuk mengirim notifikasi konsultasi ke admin Puskesmas Wori Online.
               </p>
@@ -783,7 +784,7 @@ const Konsultasi = () => {
                 </div>
 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm text-blue-800">
-                  ℹ️ Admin akan menghubungi Anda via email untuk konsultasi lebih lanjut.
+                  <Info className="w-4 h-4 inline mr-1" /> Admin akan menghubungi Anda via email untuk konsultasi lebih lanjut.
                 </div>
                 
                 <div className="flex justify-end space-x-4">
@@ -805,7 +806,7 @@ const Konsultasi = () => {
                   >
                     {isSendingEmail ? (
                       <>
-                        <span className="animate-spin mr-2">⏳</span>
+                        <Loader2 className="animate-spin mr-2 w-4 h-4" />
                         Mengirim...
                       </>
                     ) : (

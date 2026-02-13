@@ -1,6 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Home, Info, Activity, Shield, MessageCircle, Phone, BarChart3, Users, Megaphone, UserPlus, User, LogOut, LogIn, Lock, X, FileEdit } from 'lucide-react';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -9,292 +10,201 @@ interface SidebarProps {
 
 const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const navigate = useNavigate();
-  const [animationClass, setAnimationClass] = useState('');
+  const location = useLocation();
   const [user, setUser] = useState<{ name: string; email: string; phone?: string; profileImage?: string; role?: string } | null>(null);
-  const [showScrollIndicator, setShowScrollIndicator] = useState(false);
-  
-  useEffect(() => {
-    if (isOpen) {
-      setAnimationClass('animate-slide-in');
-    } else {
-      setAnimationClass('animate-slide-out');
-    }
+  const sidebarRef = useRef<HTMLDivElement>(null);
 
-    // Cek apakah user sudah login
+  // User state sync
+  useEffect(() => {
     const updateUser = () => {
       const userData = localStorage.getItem('user');
-      if (userData) {
-        setUser(JSON.parse(userData));
-      } else {
-        setUser(null);
-      }
+      setUser(userData ? JSON.parse(userData) : null);
     };
-    
     updateUser();
-
-    // Listen for user updates
     window.addEventListener('userUpdated', updateUser);
-    
+    window.addEventListener('storage', updateUser);
     return () => {
       window.removeEventListener('userUpdated', updateUser);
+      window.removeEventListener('storage', updateUser);
     };
-  }, [isOpen]);
-
-  // Check if content is scrollable
-  useEffect(() => {
-    const checkScrollable = () => {
-      const scrollContainer = document.getElementById('sidebar-scroll-container');
-      if (scrollContainer) {
-        const isScrollable = scrollContainer.scrollHeight > scrollContainer.clientHeight;
-        setShowScrollIndicator(isScrollable && scrollContainer.scrollTop === 0);
-      }
-    };
-
-    if (isOpen) {
-      setTimeout(checkScrollable, 100); // Delay to ensure DOM is ready
-    }
-
-    window.addEventListener('resize', checkScrollable);
-    return () => window.removeEventListener('resize', checkScrollable);
-  }, [isOpen, user]);
-
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const target = e.currentTarget;
-    setShowScrollIndicator(target.scrollTop === 0 && target.scrollHeight > target.clientHeight);
-  };
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('user');
     setUser(null);
-    // Notify other components in this tab to refresh their auth state
     window.dispatchEvent(new Event('userUpdated'));
     onClose();
     navigate('/');
   };
 
+  const isActive = (path: string) => location.pathname === path;
+
+  const navItems = [
+    { to: '/', icon: Home, label: 'Beranda', requiresAuth: false },
+    { to: '/tentang', icon: Info, label: 'Tentang', requiresAuth: false },
+    { to: '/penyakit', icon: Activity, label: 'Info Penyakit', requiresAuth: true },
+    { to: '/pencegahan', icon: Shield, label: 'Pencegahan', requiresAuth: true },
+    { to: '/konsultasi', icon: MessageCircle, label: 'Konsultasi', requiresAuth: true },
+    { to: '/kontak', icon: Phone, label: 'Kontak', requiresAuth: false },
+  ];
+
+  const adminItems = [
+    { to: '/admin/dashboard', icon: BarChart3, label: 'Dashboard Admin' },
+    { to: '/admin/patients', icon: Users, label: 'Kelola Pasien' },
+    { to: '/admin/broadcast', icon: Megaphone, label: 'Broadcast WhatsApp' },
+    { to: '/admin/register', icon: UserPlus, label: 'Tambah Admin' },
+  ];
+
   return (
-    <div 
-      className={`fixed top-0 left-0 h-full w-60 bg-sidebar shadow-lg z-30 transform ${
+    <div
+      ref={sidebarRef}
+      className={`fixed top-0 left-0 h-full w-64 bg-white border-r border-gray-200 shadow-xl z-30 flex flex-col transition-transform duration-300 ease-in-out ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
-      } ${animationClass} flex flex-col`}
+      }`}
     >
-      {/* Header - Fixed */}
-      <div className="flex-shrink-0 px-4 py-6 border-b border-sidebar-accent">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold text-sidebar-foreground">Menu</h2>
-          <button 
-            onClick={onClose}
-            className="text-sidebar-foreground hover:text-sidebar-primary text-2xl"
-          >
-            
-          </button>
-        </div>
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <h2 className="text-base font-bold text-slate-700">Menu Navigasi</h2>
+        <button
+          onClick={onClose}
+          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+          aria-label="Tutup menu"
+        >
+          <X className="w-4.5 h-4.5" />
+        </button>
       </div>
 
       {/* Scrollable Content */}
-      <div 
-        id="sidebar-scroll-container"
-        onScroll={handleScroll}
-        className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 scrollbar-thin scrollbar-thumb-sidebar-accent scrollbar-track-transparent hover:scrollbar-thumb-sidebar-primary relative"
-      >
-        {/* User Profile Section - hanya tampil jika sudah login */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden py-3">
+
+        {/* User Profile */}
         {user && (
-          <div className="mb-6 pb-6 border-b border-sidebar-accent">
-            <div className="flex items-center px-2">
+          <div className="mx-3 mb-3 p-3 bg-sky-50 rounded-xl">
+            <div className="flex items-center gap-3">
               {user.profileImage ? (
-                <img 
-                  src={user.profileImage} 
-                  alt="Profile" 
-                  className="w-12 h-12 rounded-full object-cover border-2 border-healthcare-200"
+                <img
+                  src={user.profileImage}
+                  alt="Profile"
+                  className="w-10 h-10 rounded-full object-cover ring-2 ring-sky-200"
                 />
               ) : (
-                <div className="w-12 h-12 bg-healthcare-100 rounded-full flex items-center justify-center text-lg font-bold text-healthcare-600">
+                <div className="w-10 h-10 bg-sky-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
                   {user.name.charAt(0).toUpperCase()}
                 </div>
               )}
-              <div className="ml-3 flex-1 min-w-0">
-                <p className="text-sm font-semibold text-sidebar-foreground truncate">{user.name}</p>
-                <p className="text-xs text-sidebar-foreground opacity-75 truncate">{user.email}</p>
-                {user.phone && (
-                  <p className="text-xs text-sidebar-foreground opacity-75 truncate mt-0.5">
-                    📞 {user.phone}
-                  </p>
-                )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-800 truncate">{user.name}</p>
+                <p className="text-xs text-gray-500 truncate">{user.email}</p>
               </div>
             </div>
           </div>
         )}
-        
-        <nav>
-          <ul className="space-y-4">
-            <li>
-              <Link 
-                to="/" 
-                className="flex items-center px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors"
-                onClick={onClose}
-              >
-                <span className="mr-3">🏠</span> Beranda
-              </Link>
-            </li>
-            <li>
-              <Link 
-                to="/tentang" 
-                className="flex items-center px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors"
-                onClick={onClose}
-              >
-                <span className="mr-3">ℹ️</span> Tentang
-              </Link>
-            </li>
-            <li>
-              <Link 
-                to={user ? "/penyakit" : "/login"}
-                className={`flex items-center px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors ${!user ? 'opacity-70' : ''}`}
-                onClick={onClose}
-                title={!user ? 'Silakan login untuk mengakses' : undefined}
-              >
-                <span className="mr-3">{user ? '🦠' : '🔒'}</span> Info Penyakit
-              </Link>
-            </li>
-            <li>
-              <Link 
-                to={user ? "/pencegahan" : "/login"}
-                className={`flex items-center px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors ${!user ? 'opacity-70' : ''}`}
-                onClick={onClose}
-                title={!user ? 'Silakan login untuk mengakses' : undefined}
-              >
-                <span className="mr-3">{user ? '🛡️' : '🔒'}</span> Pencegahan
-              </Link>
-            </li>
-            <li>
-              <Link 
-                to={user ? "/konsultasi" : "/login"}
-                className={`flex items-center px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors ${!user ? 'opacity-70' : ''}`}
-                onClick={onClose}
-                title={!user ? 'Silakan login untuk mengakses' : undefined}
-              >
-                <span className="mr-3">{user ? '💬' : '🔒'}</span> Konsultasi
-              </Link>
-            </li>
-            <li>
-              <Link 
-                to="/kontak" 
-                className="flex items-center px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors"
-                onClick={onClose}
-              >
-                <span className="mr-3">📞</span> Kontak
-              </Link>
-            </li>
-            
-            {/* Admin section for nurses */}
-            {user?.role === 'nurse' && (
-              <>
-                <li className="pt-4 border-t border-sidebar-accent">
-                  <div className="px-4 py-2 text-sm text-sidebar-foreground opacity-75 font-semibold">
-                    Menu Admin
-                  </div>
-                </li>
-                <li>
-                  <Link
-                    to="/admin/dashboard"
-                    className="flex items-center px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors"
-                    onClick={onClose}
-                  >
-                    <span className="mr-3">📊</span> Dashboard Admin
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/admin/patients"
-                    className="flex items-center px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors"
-                    onClick={onClose}
-                  >
-                    <span className="mr-3">�</span> Kelola Pasien
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/admin/broadcast"
-                    className="flex items-center px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors"
-                    onClick={onClose}
-                  >
-                    <span className="mr-3">📢</span> Broadcast WhatsApp
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/admin/register"
-                    className="flex items-center px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors"
-                    onClick={onClose}
-                  >
-                    <span className="mr-3">➕</span> Tambah Admin
-                  </Link>
-                </li>
-              </>
-            )}
-            
-            {/* User Menu - hanya tampil jika sudah login */}
-            {user ? (
-              <>
-                <li className="pt-4 border-t border-sidebar-accent">
-                  <div className="px-4 py-2 text-sm text-sidebar-foreground opacity-75">
-                    Akun
-                  </div>
-                </li>
-                <li>
-                  <Link 
-                    to="/profile" 
-                    className="flex items-center px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors"
-                    onClick={onClose}
-                  >
-                    <span className="mr-3">👤</span> Akun Saya
-                  </Link>
-                </li>
-                <li>
-                  <button 
-                    onClick={handleLogout}
-                    className="w-full flex items-center px-4 py-3 text-sidebar-foreground hover:bg-red-100 hover:text-red-600 rounded-md transition-colors"
-                  >
-                    <span className="mr-3">🚪</span> Logout
-                  </button>
-                </li>
-              </>
-            ) : (
-              <>
-                <li className="pt-4 border-t border-sidebar-accent">
-                  <Link 
-                    to="/login" 
-                    className="flex items-center px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors"
-                    onClick={onClose}
-                  >
-                    <span className="mr-3">🔐</span> Login
-                  </Link>
-                </li>
-                <li>
-                  <Link 
-                    to="/register" 
-                    className="flex items-center px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors"
-                    onClick={onClose}
-                  >
-                    <span className="mr-3">📝</span> Mendaftar
-                  </Link>
-                </li>
-              </>
-            )}
-          </ul>
-        </nav>
 
-        {/* Scroll Indicator */}
-        {showScrollIndicator && (
-          <div className="sticky bottom-0 left-0 right-0 flex justify-center py-2 bg-gradient-to-t from-sidebar to-transparent pointer-events-none">
-            <div className="animate-bounce text-sidebar-foreground opacity-50">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
+        {/* Main Navigation */}
+        <div className="px-3">
+          <p className="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">Menu</p>
+          <nav className="space-y-0.5">
+            {navItems.map((item) => {
+              const locked = item.requiresAuth && !user;
+              const Icon = locked ? Lock : item.icon;
+              const target = locked ? '/login' : item.to;
+              const active = isActive(item.to);
+
+              return (
+                <Link
+                  key={item.to}
+                  to={target}
+                  onClick={onClose}
+                  title={locked ? 'Silakan login untuk mengakses' : undefined}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 ${
+                    active
+                      ? 'bg-sky-50 text-sky-600'
+                      : locked
+                        ? 'text-slate-400 hover:bg-slate-50'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+                  }`}
+                >
+                  <Icon className={`w-[18px] h-[18px] flex-shrink-0 ${active ? 'text-sky-500' : ''}`} />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Admin Section */}
+        {user?.role === 'nurse' && (
+          <div className="px-3 mt-4">
+            <p className="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">Admin</p>
+            <nav className="space-y-0.5">
+              {adminItems.map((item) => {
+                const active = isActive(item.to);
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    onClick={onClose}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 ${
+                      active
+                        ? 'bg-sky-50 text-sky-600'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+                    }`}
+                  >
+                    <item.icon className={`w-[18px] h-[18px] flex-shrink-0 ${active ? 'text-sky-500' : ''}`} />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
         )}
       </div>
-      {/* End of Scrollable Content */}
+
+      {/* Bottom: Account Actions */}
+      <div className="border-t border-gray-100 px-3 py-3">
+        {user ? (
+          <div className="space-y-0.5">
+            <Link
+              to="/profile"
+              onClick={onClose}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 ${
+                isActive('/profile')
+                  ? 'bg-sky-50 text-sky-600'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+              }`}
+            >
+              <User className="w-[18px] h-[18px] flex-shrink-0" />
+              Akun Saya
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors duration-150"
+            >
+              <LogOut className="w-[18px] h-[18px] flex-shrink-0" />
+              Keluar
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-0.5">
+            <Link
+              to="/login"
+              onClick={onClose}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors duration-150"
+            >
+              <LogIn className="w-[18px] h-[18px] flex-shrink-0" />
+              Login
+            </Link>
+            <Link
+              to="/register"
+              onClick={onClose}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors duration-150"
+            >
+              <FileEdit className="w-[18px] h-[18px] flex-shrink-0" />
+              Mendaftar
+            </Link>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

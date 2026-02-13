@@ -24,7 +24,7 @@ const TestGemini = () => {
       const key = import.meta.env.VITE_GEMINI_API_KEY;
       
       if (!key) {
-        setTestResult('❌ ERROR: API Key tidak ditemukan di environment variables!\n\nPastikan:\n1. File .env ada di root\n2. Berisi: VITE_GEMINI_API_KEY=your_key\n3. Server sudah di-restart\n4. Browser sudah di-refresh');
+        setTestResult(' ERROR: API Key tidak ditemukan di environment variables!\n\nPastikan:\n1. File .env ada di root\n2. Berisi: VITE_GEMINI_API_KEY=your_key\n3. Server sudah di-restart\n4. Browser sudah di-refresh');
         return;
       }
 
@@ -37,12 +37,12 @@ const TestGemini = () => {
       const response = await result.response;
       const text = response.text();
       
-      setTestResult(`✅ SUCCESS!\n\nGemini Response:\n${text}`);
-      console.log("✅ Test successful:", text);
+      setTestResult(` SUCCESS!\n\nGemini Response:\n${text}`);
+      console.log("Test successful:", text);
       
     } catch (error: any) {
-      console.error("❌ Test failed:", error);
-      setTestResult(`❌ ERROR:\n\n${error.message}\n\nFull error:\n${JSON.stringify(error, null, 2)}`);
+      console.error("Test failed:", error);
+      setTestResult(` ERROR:\n\n${error.message}\n\nFull error:\n${JSON.stringify(error, null, 2)}`);
     } finally {
       setIsLoading(false);
     }
@@ -50,16 +50,16 @@ const TestGemini = () => {
 
   return (
     <div style={{ padding: '20px', fontFamily: 'monospace' }}>
-      <h1>🧪 Gemini API Test Page</h1>
+      <h1> Gemini API Test Page</h1>
       
       <div style={{ background: '#f5f5f5', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
         <h3>Environment Variables Check:</h3>
         <p><strong>VITE_GEMINI_API_KEY:</strong></p>
         <div style={{ background: apiKey === 'NOT FOUND' ? '#ffebee' : '#e8f5e9', padding: '10px', borderRadius: '4px', wordBreak: 'break-all' }}>
           {apiKey === 'NOT FOUND' ? (
-            <span style={{ color: 'red' }}>❌ NOT FOUND</span>
+            <span style={{ color: 'red' }}> NOT FOUND</span>
           ) : (
-            <span style={{ color: 'green' }}>✅ {apiKey.substring(0, 20)}...{apiKey.substring(apiKey.length - 5)}</span>
+            <span style={{ color: 'green' }}> {apiKey.substring(0, 20)}...{apiKey.substring(apiKey.length - 5)}</span>
           )}
         </div>
       </div>
@@ -95,7 +95,7 @@ const TestGemini = () => {
       )}
 
       <div style={{ marginTop: '30px', background: '#fff3cd', padding: '15px', borderRadius: '8px' }}>
-        <h3>⚠️ Troubleshooting:</h3>
+        <h3> Troubleshooting:</h3>
         <ol>
           <li>Pastikan file <code>.env</code> ada di root project (sejajar dengan package.json)</li>
           <li>Isi file .env:

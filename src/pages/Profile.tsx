@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import ImageCropModal from '../components/ImageCropModal';
 import { hashPassword, verifyPassword } from '../lib/passwordUtils';
+import { AlertTriangle } from 'lucide-react';
 import { getUserStats } from '../lib/userActivityTracking';
 
 const Profile = () => {
@@ -276,10 +277,10 @@ const Profile = () => {
         confirmPassword: ''
       });
       
-      alert('✅ Password berhasil diubah!');
+      alert('Password berhasil diubah!');
     } catch (error) {
       console.error('Change password error:', error);
-      alert('❌ Terjadi kesalahan saat mengubah password!');
+      alert('Terjadi kesalahan saat mengubah password!');
     }
   };
 
@@ -320,12 +321,12 @@ const Profile = () => {
       localStorage.removeItem('user');
       
       // Redirect ke halaman utama
-      alert('✅ Akun berhasil dihapus. Terima kasih telah menggunakan layanan kami.');
+      alert('Akun berhasil dihapus. Terima kasih telah menggunakan layanan kami.');
       navigate('/');
       
     } catch (error) {
       console.error('Delete account error:', error);
-      alert('❌ Terjadi kesalahan saat menghapus akun!');
+      alert('Terjadi kesalahan saat menghapus akun!');
     }
   };
 
@@ -336,7 +337,7 @@ const Profile = () => {
   return (
     <Layout>
       <div className="max-w-4xl mx-auto p-4 md:p-8">
-        <h1 className="text-3xl font-bold text-healthcare-800 mb-8">Akun Saya</h1>
+        <h1 className="text-3xl font-bold text-slate-700 mb-8">Akun Saya</h1>
         
         {/* Profile Card */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
@@ -347,10 +348,10 @@ const Profile = () => {
                 <img 
                   src={profileImage} 
                   alt="Profile" 
-                  className="w-32 h-32 rounded-full object-cover border-4 border-healthcare-200"
+                  className="w-32 h-32 rounded-full object-cover border-4 border-sky-200"
                 />
               ) : (
-                <div className="w-32 h-32 bg-healthcare-100 rounded-full flex items-center justify-center text-5xl font-bold text-healthcare-600 border-4 border-healthcare-200">
+                <div className="w-32 h-32 bg-sky-50 rounded-full flex items-center justify-center text-5xl font-bold text-sky-500 border-4 border-sky-200">
                   {user.name.charAt(0).toUpperCase()}
                 </div>
               )}
@@ -358,7 +359,7 @@ const Profile = () => {
               {/* Upload Button */}
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="absolute bottom-0 right-0 bg-healthcare-600 text-white p-2 rounded-full hover:bg-healthcare-700 transition-colors shadow-lg"
+                className="absolute bottom-0 right-0 bg-sky-500 text-white p-2 rounded-full hover:bg-slate-600 transition-colors shadow-lg"
                 title="Upload foto"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -396,7 +397,7 @@ const Profile = () => {
                 <div className="flex gap-2 justify-center md:justify-start">
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="text-sm text-healthcare-600 hover:text-healthcare-700 font-medium"
+                    className="text-sm text-sky-500 hover:text-slate-600 font-medium"
                   >
                     Ganti Foto
                   </button>
@@ -415,7 +416,7 @@ const Profile = () => {
           {!isEditing ? (
             <button
               onClick={() => setIsEditing(true)}
-              className="bg-healthcare-600 text-white px-6 py-2 rounded-lg hover:bg-healthcare-700 transition-colors"
+              className="bg-sky-500 text-white px-6 py-2 rounded-lg hover:bg-slate-600 transition-colors"
             >
               Edit Profil
             </button>
@@ -431,7 +432,7 @@ const Profile = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
                   required
                 />
               </div>
@@ -446,7 +447,7 @@ const Profile = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
                   required
                 />
               </div>
@@ -462,7 +463,7 @@ const Profile = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent outline-none"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
                     placeholder="08123456789 atau +628123456789"
                   />
                   {formData.phone && (
@@ -484,7 +485,7 @@ const Profile = () => {
               <div className="flex gap-3">
                 <button
                   type="submit"
-                  className="bg-healthcare-600 text-white px-6 py-2 rounded-lg hover:bg-healthcare-700 transition-colors"
+                  className="bg-sky-500 text-white px-6 py-2 rounded-lg hover:bg-slate-600 transition-colors"
                 >
                   Simpan
                 </button>
@@ -515,7 +516,7 @@ const Profile = () => {
                 name="currentPassword"
                 value={formData.currentPassword}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent outline-none"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
                 placeholder="Masukkan password saat ini"
               />
             </div>
@@ -530,7 +531,7 @@ const Profile = () => {
                 name="newPassword"
                 value={formData.newPassword}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent outline-none"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
                 placeholder="Minimal 6 karakter"
               />
             </div>
@@ -545,14 +546,14 @@ const Profile = () => {
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent outline-none"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
                 placeholder="Ketik ulang password baru"
               />
             </div>
             
             <button
               type="submit"
-              className="bg-healthcare-600 text-white px-6 py-2 rounded-lg hover:bg-healthcare-700 transition-colors"
+              className="bg-sky-500 text-white px-6 py-2 rounded-lg hover:bg-slate-600 transition-colors"
             >
               Ubah Password
             </button>
@@ -562,24 +563,24 @@ const Profile = () => {
         {/* Account Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
           <div className="bg-white rounded-xl shadow-sm p-6 text-center">
-            <div className="text-3xl font-bold text-healthcare-600">{userStats.consultationCount}</div>
+            <div className="text-3xl font-bold text-sky-500">{userStats.consultationCount}</div>
             <div className="text-gray-600 mt-2">Konsultasi</div>
           </div>
           
           <div className="bg-white rounded-xl shadow-sm p-6 text-center">
-            <div className="text-3xl font-bold text-healthcare-600">{userStats.articlesReadCount}</div>
+            <div className="text-3xl font-bold text-sky-500">{userStats.articlesReadCount}</div>
             <div className="text-gray-600 mt-2">Artikel Dibaca</div>
           </div>
           
           <div className="bg-white rounded-xl shadow-sm p-6 text-center">
-            <div className="text-3xl font-bold text-healthcare-600">{userStats.activeDaysCount}</div>
+            <div className="text-3xl font-bold text-sky-500">{userStats.activeDaysCount}</div>
             <div className="text-gray-600 mt-2">Hari Aktif</div>
           </div>
         </div>
 
         {/* Danger Zone - Delete Account */}
         <div className="bg-white rounded-xl shadow-sm p-6 mt-6 border-2 border-red-200">
-          <h3 className="text-xl font-semibold text-red-600 mb-4">⚠️ Zona Berbahaya</h3>
+          <h3 className="text-xl font-semibold text-red-600 mb-4 flex items-center gap-2"><AlertTriangle className="w-5 h-5" /> Zona Berbahaya</h3>
           <p className="text-gray-600 mb-4">
             Setelah menghapus akun, semua data Anda akan dihapus secara permanen. 
             Tindakan ini tidak dapat dibatalkan.

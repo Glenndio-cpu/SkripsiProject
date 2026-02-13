@@ -63,17 +63,8 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				healthcare: {
-					100: '#e6f7ff',
-					200: '#bae7ff',
-					300: '#91d5ff',
-					400: '#69c0ff',
-					500: '#40a9ff',
-					600: '#1890ff',
-					700: '#096dd9',
-					800: '#0050b3',
-					900: '#003a8c',
-				}
+				// 3-Color Palette: Sky Blue (#0EA5E9), White (#FFFFFF), Slate (#334155)
+				// Using Tailwind's built-in sky-* and slate-* palettes directly
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

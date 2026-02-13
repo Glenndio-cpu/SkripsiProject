@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import { hashPassword } from '../lib/passwordUtils';
+import { ShieldCheck, AlertTriangle, CheckCircle } from 'lucide-react';
 
-// Kode akses rahasia untuk registrasi admin
-const ADMIN_ACCESS_CODE = 'PUSKESMAS2025ADMIN';
+// Kode akses rahasia untuk registrasi admin (dari environment variable)
+const ADMIN_ACCESS_CODE = import.meta.env.VITE_ADMIN_ACCESS_CODE || '';
 
 const AdminRegister = () => {
   const navigate = useNavigate();
@@ -129,7 +130,7 @@ const AdminRegister = () => {
       localStorage.setItem('users', JSON.stringify(existingUsers));
       
       setIsLoading(false);
-      alert(`✅ Admin ${formData.name} berhasil didaftarkan!`);
+      alert(`Admin ${formData.name} berhasil didaftarkan!`);
       
       // Reset form
       setFormData({
@@ -154,10 +155,10 @@ const AdminRegister = () => {
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-block bg-healthcare-100 p-4 rounded-full mb-4">
-            <span className="text-5xl">🔐</span>
+          <div className="inline-block bg-sky-50 p-4 rounded-full mb-4">
+            <ShieldCheck className="w-12 h-12 text-sky-500" />
           </div>
-          <h1 className="text-3xl font-bold text-healthcare-800 mb-2">
+          <h1 className="text-3xl font-bold text-slate-700 mb-2">
             Registrasi Admin Baru
           </h1>
           <p className="text-gray-600">
@@ -171,7 +172,7 @@ const AdminRegister = () => {
             <div className="mb-6">
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
                 <div className="flex items-start gap-3">
-                  <span className="text-2xl">⚠️</span>
+                  <AlertTriangle className="w-6 h-6 text-yellow-600 flex-shrink-0" />
                   <div>
                     <h3 className="font-semibold text-yellow-800 mb-1">Akses Terbatas</h3>
                     <p className="text-sm text-yellow-700">
@@ -192,7 +193,7 @@ const AdminRegister = () => {
                     value={accessCode}
                     onChange={(e) => setAccessCode(e.target.value)}
                     placeholder="Masukkan kode akses"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                     required
                   />
                 </div>
@@ -205,7 +206,7 @@ const AdminRegister = () => {
 
                 <button
                   type="submit"
-                  className="w-full bg-healthcare-600 text-white px-6 py-3 rounded-lg hover:bg-healthcare-700 transition-colors font-medium"
+                  className="w-full bg-sky-500 text-white px-6 py-3 rounded-lg hover:bg-slate-600 transition-colors font-medium"
                 >
                   Verifikasi Kode Akses
                 </button>
@@ -224,7 +225,7 @@ const AdminRegister = () => {
           <div className="bg-white rounded-xl shadow-sm p-8">
             <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
               <div className="flex items-center gap-2">
-                <span className="text-2xl">✅</span>
+                <CheckCircle className="w-6 h-6 text-green-600" />
                 <p className="text-green-700 font-medium">Kode akses valid! Silakan lengkapi form registrasi.</p>
               </div>
             </div>
@@ -240,7 +241,7 @@ const AdminRegister = () => {
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="Dr. John Doe"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                   required
                 />
               </div>
@@ -255,7 +256,7 @@ const AdminRegister = () => {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="admin@puskesmaswori.id"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                   required
                 />
               </div>
@@ -270,7 +271,7 @@ const AdminRegister = () => {
                   value={formData.phone}
                   onChange={handleChange}
                   placeholder="08123456789"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                   required
                 />
                 <p className="text-sm text-gray-500 mt-1">Format: 08xxxxxxxxxx (10-15 digit)</p>
@@ -286,7 +287,7 @@ const AdminRegister = () => {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Minimal 6 karakter"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                   required
                 />
               </div>
@@ -301,7 +302,7 @@ const AdminRegister = () => {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   placeholder="Ketik ulang password"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                   required
                 />
               </div>
@@ -326,7 +327,7 @@ const AdminRegister = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="flex-1 bg-healthcare-600 text-white px-6 py-3 rounded-lg hover:bg-healthcare-700 transition-colors font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="flex-1 bg-sky-500 text-white px-6 py-3 rounded-lg hover:bg-slate-600 transition-colors font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   {isLoading ? 'Mendaftarkan...' : 'Daftarkan Admin'}
                 </button>
@@ -346,7 +347,7 @@ const AdminRegister = () => {
         <div className="mt-6 text-center">
           <button
             onClick={() => navigate('/admin/dashboard')}
-            className="text-healthcare-600 hover:text-healthcare-800 font-medium"
+            className="text-sky-500 hover:text-slate-700 font-medium"
           >
             ← Kembali ke Dashboard
           </button>

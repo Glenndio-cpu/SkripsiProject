@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaHeartbeat, FaTimes, FaPaperPlane } from 'react-icons/fa';
 import { useToast } from '@/hooks/use-toast';
 import { getGeminiResponse, type ChatMessage } from '../lib/gemini';
+import { AlertTriangle, Stethoscope, Info } from 'lucide-react';
 import { trackConsultation } from '../lib/userActivityTracking';
 
 interface Message {
@@ -77,7 +78,7 @@ const AIAssistant = () => {
           content: msg.content
         }));
 
-      console.log("📤 AIAssistant sending to Gemini:", chatMessages.length, "messages");
+      console.log("AIAssistant sending to Gemini:", chatMessages.length, "messages");
 
       // Panggil Gemini API (mode otomatis disesuaikan dengan login status)
       const aiResponse = await getGeminiResponse(chatMessages);
@@ -171,8 +172,8 @@ const AIAssistant = () => {
                 key={lineIndex}
                 className="mt-4 first:mt-0"
               >
-                <h4 className="font-bold text-healthcare-700 text-base pb-1.5 border-b border-healthcare-300 mb-2">
-                  <span className="text-healthcare-600 mr-2">{currentHeaderNumber}.</span>
+                <h4 className="font-bold text-slate-600 text-base pb-1.5 border-b border-sky-300 mb-2">
+                  <span className="text-sky-500 mr-2">{currentHeaderNumber}.</span>
                   {trimmedLine.replace(/:\s*$/, '')}
                 </h4>
               </div>
@@ -186,7 +187,7 @@ const AIAssistant = () => {
                 className="bg-yellow-50 border-l-3 border-yellow-400 p-2 rounded-r my-2"
               >
                 <p className="text-yellow-800 font-semibold text-xs flex items-start gap-1.5">
-                  <span>⚠️</span>
+                  <AlertTriangle className="w-3 h-3 flex-shrink-0 mt-0.5" />
                   <span>{trimmedLine}</span>
                 </p>
               </div>
@@ -248,7 +249,7 @@ const AIAssistant = () => {
               key={lineIndex}
               className="flex items-start gap-2 ml-4 my-1.5"
             >
-              <span className="font-semibold text-healthcare-600 min-w-[1.2rem] text-xs">
+              <span className="font-semibold text-sky-500 min-w-[1.2rem] text-xs">
                 {subItemCounter}.
               </span>
               <p className="text-sm leading-relaxed text-gray-800 flex-1">
@@ -266,7 +267,7 @@ const AIAssistant = () => {
       {/* Floating Action Button */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 w-16 h-16 rounded-full bg-healthcare-600 text-white flex items-center justify-center shadow-lg z-50"
+        className="fixed bottom-6 right-6 w-16 h-16 rounded-full bg-sky-500 text-white flex items-center justify-center shadow-lg z-50"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         aria-label="Buka Asisten Virtual"
@@ -301,7 +302,7 @@ const AIAssistant = () => {
             }}
           >
             {/* Header - unchanged */}
-            <div className="bg-healthcare-700 text-white p-4">
+            <div className="bg-slate-600 text-white p-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center">
                   <div className="bg-white/20 p-2 rounded-full mr-3">
@@ -326,7 +327,7 @@ const AIAssistant = () => {
                   ? 'bg-green-500/20 text-green-100 border border-green-400/30' 
                   : 'bg-blue-500/20 text-blue-100 border border-blue-400/30'
               }`}>
-                <span>{isUserLoggedIn ? '💬' : 'ℹ️'}</span>
+                <span>{isUserLoggedIn ? <Stethoscope className="w-3 h-3" /> : <Info className="w-3 h-3" />}</span>
                 <span>Mode: {isUserLoggedIn ? 'Konsultasi' : 'Info Puskesmas'}</span>
               </div>
             </div>
@@ -349,7 +350,7 @@ const AIAssistant = () => {
                   <div
                     className={`inline-block rounded-lg px-4 py-2 max-w-[90%] ${
                       msg.role === 'user'
-                        ? 'bg-healthcare-600 text-white'
+                        ? 'bg-sky-500 text-white'
                         : 'bg-white border border-gray-200 text-gray-700'
                     }`}
                   >
@@ -384,12 +385,12 @@ const AIAssistant = () => {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Ketik pesan anda..."
-                  className="flex-1 border border-gray-300 rounded-l-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-healthcare-500"
+                  className="flex-1 border border-gray-300 rounded-l-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
                   disabled={isLoading}
                 />
                 <motion.button
                   type="submit"
-                  className="bg-healthcare-600 text-white px-4 py-2 rounded-r-lg"
+                  className="bg-sky-500 text-white px-4 py-2 rounded-r-lg"
                   whileHover={{ backgroundColor: '#2563eb' }}
                   whileTap={{ scale: 0.95 }}
                   disabled={isLoading || !message.trim()}

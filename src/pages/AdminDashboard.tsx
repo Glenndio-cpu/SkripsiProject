@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import { getAllUsers } from '../lib/userBroadcast';
 import { getAllUserStats } from '../lib/userActivityTracking';
+import { UsersRound, MessageCircle, BookOpen, Zap, Smartphone, BarChart3, Megaphone, UserPlus, Lightbulb } from 'lucide-react';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -77,7 +78,7 @@ const AdminDashboard = () => {
     setRecentActivity(recent);
   };
 
-  const StatCard = ({ icon, title, value, subtitle, color }: any) => (
+  const StatCard = ({ icon: Icon, title, value, subtitle, color }: any) => (
     <div className={`bg-white rounded-xl shadow-sm p-6 border-l-4 ${color}`}>
       <div className="flex items-center justify-between">
         <div>
@@ -85,7 +86,7 @@ const AdminDashboard = () => {
           <h3 className="text-3xl font-bold text-gray-800 mt-2">{value}</h3>
           {subtitle && <p className="text-gray-400 text-xs mt-1">{subtitle}</p>}
         </div>
-        <div className="text-4xl">{icon}</div>
+        <div className="text-gray-400">{Icon && <Icon className="w-10 h-10" />}</div>
       </div>
     </div>
   );
@@ -95,14 +96,14 @@ const AdminDashboard = () => {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-healthcare-800 mb-2">Dashboard Admin</h1>
+          <h1 className="text-3xl font-bold text-slate-700 mb-2">Dashboard Admin</h1>
           <p className="text-gray-600">Selamat datang di panel administrasi Puskesmas Wori Online</p>
         </div>
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <StatCard
-            icon="👥"
+            icon={UsersRound}
             title="Total Pasien"
             value={stats.totalPatients}
             subtitle={`${stats.newThisWeek} pasien baru minggu ini`}
@@ -110,7 +111,7 @@ const AdminDashboard = () => {
           />
           
           <StatCard
-            icon="💬"
+            icon={MessageCircle}
             title="Total Konsultasi"
             value={stats.totalConsultations}
             subtitle="Semua konsultasi pasien"
@@ -118,7 +119,7 @@ const AdminDashboard = () => {
           />
           
           <StatCard
-            icon="📖"
+            icon={BookOpen}
             title="Artikel Dibaca"
             value={stats.totalArticlesRead}
             subtitle="Total pembacaan artikel"
@@ -126,7 +127,7 @@ const AdminDashboard = () => {
           />
           
           <StatCard
-            icon="⚡"
+            icon={Zap}
             title="Aktif Hari Ini"
             value={stats.activeToday}
             subtitle="Pasien aktif hari ini"
@@ -134,7 +135,7 @@ const AdminDashboard = () => {
           />
           
           <StatCard
-            icon="📱"
+            icon={Smartphone}
             title="Pasien dengan HP"
             value={stats.patientsWithPhone}
             subtitle={`${Math.round((stats.patientsWithPhone / stats.totalPatients) * 100 || 0)}% dari total`}
@@ -142,7 +143,7 @@ const AdminDashboard = () => {
           />
           
           <StatCard
-            icon="📊"
+            icon={BarChart3}
             title="Rata-rata Konsultasi"
             value={Math.round((stats.totalConsultations / stats.totalPatients) || 0)}
             subtitle="Per pasien"
@@ -156,9 +157,9 @@ const AdminDashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <button
               onClick={() => navigate('/admin/patients')}
-              className="flex items-center justify-center gap-3 bg-healthcare-600 text-white px-6 py-4 rounded-lg hover:bg-healthcare-700 transition-colors"
+              className="flex items-center justify-center gap-3 bg-sky-500 text-white px-6 py-4 rounded-lg hover:bg-slate-600 transition-colors"
             >
-              <span className="text-2xl">👥</span>
+              <UsersRound className="w-6 h-6" />
               <span className="font-medium">Kelola Pasien</span>
             </button>
             
@@ -166,7 +167,7 @@ const AdminDashboard = () => {
               onClick={() => navigate('/admin/broadcast')}
               className="flex items-center justify-center gap-3 bg-green-600 text-white px-6 py-4 rounded-lg hover:bg-green-700 transition-colors"
             >
-              <span className="text-2xl">📢</span>
+              <Megaphone className="w-6 h-6" />
               <span className="font-medium">Broadcast WhatsApp</span>
             </button>
             
@@ -174,7 +175,7 @@ const AdminDashboard = () => {
               onClick={() => navigate('/admin/register')}
               className="flex items-center justify-center gap-3 bg-purple-600 text-white px-6 py-4 rounded-lg hover:bg-purple-700 transition-colors"
             >
-              <span className="text-2xl">➕</span>
+              <UserPlus className="w-6 h-6" />
               <span className="font-medium">Tambah Admin</span>
             </button>
           </div>
@@ -194,8 +195,8 @@ const AdminDashboard = () => {
                   className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-healthcare-100 rounded-full flex items-center justify-center">
-                      <span className="text-healthcare-600 font-bold">
+                    <div className="w-10 h-10 bg-sky-50 rounded-full flex items-center justify-center">
+                      <span className="text-sky-500 font-bold">
                         {activity.email.charAt(0).toUpperCase()}
                       </span>
                     </div>
@@ -225,11 +226,11 @@ const AdminDashboard = () => {
         </div>
 
         {/* Info Box */}
-        <div className="mt-8 bg-healthcare-50 border border-healthcare-200 rounded-lg p-6">
+        <div className="mt-8 bg-sky-50 border border-sky-200 rounded-lg p-6">
           <div className="flex items-start gap-3">
-            <span className="text-2xl">💡</span>
+            <Lightbulb className="w-6 h-6 text-sky-500 flex-shrink-0" />
             <div>
-              <h3 className="font-semibold text-healthcare-800 mb-2">Tips Pengelolaan</h3>
+              <h3 className="font-semibold text-slate-700 mb-2">Tips Pengelolaan</h3>
               <ul className="space-y-1 text-sm text-gray-700">
                 <li>• Gunakan fitur Broadcast untuk mengirim informasi kesehatan ke semua pasien</li>
                 <li>• Monitor aktivitas pasien secara berkala untuk memastikan engagement</li>

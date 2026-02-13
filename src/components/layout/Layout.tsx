@@ -12,7 +12,6 @@ interface LayoutProps {
 
 const Layout = ({ children, hideAIAssistant = false }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [contentStyle, setContentStyle] = useState('');
 
   const scrollToTop = () => {
     window.scrollTo({
@@ -21,30 +20,35 @@ const Layout = ({ children, hideAIAssistant = false }: LayoutProps) => {
     });
   };
 
+  // Close sidebar on route change (handled by Sidebar onClose)
+  // Lock body scroll when sidebar is open on mobile
   useEffect(() => {
     if (sidebarOpen) {
-      setContentStyle('translate-x-60');
+      document.body.style.overflow = 'hidden';
     } else {
-      setContentStyle('');
+      document.body.style.overflow = '';
     }
+    return () => { document.body.style.overflow = ''; };
   }, [sidebarOpen]);
 
   return (
     <div className="flex flex-col min-h-screen relative">
-      {/* Sidebar */}
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      
-      {/* Sidebar Toggle Button with margin top */}
-      <button
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        className={`fixed top-24 left-6 z-50 w-12 h-12 rounded-full bg-healthcare-600 text-white flex items-center justify-center shadow-lg hover:bg-healthcare-700 transition-transform duration-300 ${contentStyle} mt-4`}
-      >
-        <span className="text-xl">{sidebarOpen ? '✕' : '☰'}</span>
-      </button>
+      {/* Sidebar — mobile only */}
+      <div className="lg:hidden">
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      {/* Main Content Wrapper (moves with sidebar) */}
-      <div className={`flex flex-col min-h-screen transition-transform duration-300 ${contentStyle}`}>
-        <Header />
+        {/* Overlay when sidebar is open */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/30 backdrop-blur-[2px] z-20 transition-opacity duration-300"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+      </div>
+
+      {/* Main Content */}
+      <div className="flex flex-col min-h-screen">
+        <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} sidebarOpen={sidebarOpen} />
         
         <main className="flex-grow">
           <div className="p-4">
