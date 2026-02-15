@@ -3,8 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import ImageCropModal from '../components/ImageCropModal';
 import { hashPassword, verifyPassword } from '../lib/passwordUtils';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Camera, Phone, Mail, X, Trash2, Lock, User, Activity, BookOpen, CalendarDays } from 'lucide-react';
 import { getUserStats } from '../lib/userActivityTracking';
+
+interface UserRecord {
+  email?: string;
+  phone?: string;
+  profileImage?: string;
+  password?: string;
+  name?: string;
+  [key: string]: unknown;
+}
+
+interface ActivityRecord {
+  userEmail?: string;
+  [key: string]: unknown;
+}
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -27,51 +41,43 @@ const Profile = () => {
   });
 
   useEffect(() => {
-    // Cek apakah user sudah login
     const userData = localStorage.getItem('user');
     if (!userData) {
       navigate('/login');
       return;
     }
-    
+
     const parsedUser = JSON.parse(userData);
     setUser(parsedUser);
     setProfileImage(parsedUser.profileImage || '');
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       name: parsedUser.name,
       email: parsedUser.email,
       phone: parsedUser.phone || ''
-    });
+    }));
 
-    // Load user statistics
     const stats = getUserStats();
     setUserStats(stats);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validasi tipe file
       if (!file.type.startsWith('image/')) {
         alert('File harus berupa gambar!');
         return;
       }
-      
-      // Validasi ukuran file (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         alert('Ukuran file maksimal 5MB!');
         return;
       }
 
-      // Baca file dan tampilkan modal crop
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64String = reader.result as string;
@@ -80,87 +86,67 @@ const Profile = () => {
       };
       reader.readAsDataURL(file);
     }
-    
-    // Reset input agar bisa upload file yang sama lagi
     e.target.value = '';
   };
 
   const handleCropComplete = (croppedImageUrl: string) => {
     setProfileImage(croppedImageUrl);
-    
-    // Simpan ke localStorage user session
+
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    const updatedUser = {
-      ...currentUser,
-      profileImage: croppedImageUrl
-    };
+    const updatedUser = { ...currentUser, profileImage: croppedImageUrl };
     localStorage.setItem('user', JSON.stringify(updatedUser));
     setUser(updatedUser);
-    
-    // Update juga di users array
+
     const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const userIndex = users.findIndex((u: any) => u.email === currentUser.email);
+    const userIndex = users.findIndex((u: UserRecord) => u.email === currentUser.email);
     if (userIndex !== -1) {
       users[userIndex].profileImage = croppedImageUrl;
       localStorage.setItem('users', JSON.stringify(users));
     }
-    
-    // Trigger event untuk update header
+
     window.dispatchEvent(new Event('userUpdated'));
-    
     alert('Foto profil berhasil diperbarui!');
   };
 
   const handleRemoveImage = () => {
     setProfileImage('');
-    
-    // Update localStorage user session
+
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    const updatedUser = {
-      ...currentUser,
-      profileImage: ''
-    };
+    const updatedUser = { ...currentUser, profileImage: '' };
     localStorage.setItem('user', JSON.stringify(updatedUser));
     setUser(updatedUser);
-    
-    // Update juga di users array
+
     const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const userIndex = users.findIndex((u: any) => u.email === currentUser.email);
+    const userIndex = users.findIndex((u: UserRecord) => u.email === currentUser.email);
     if (userIndex !== -1) {
       users[userIndex].profileImage = '';
       localStorage.setItem('users', JSON.stringify(users));
     }
-    
-    // Trigger event untuk update header
+
     window.dispatchEvent(new Event('userUpdated'));
-    
     alert('Foto profil berhasil dihapus!');
   };
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validasi nomor telepon jika diisi
+
     if (formData.phone) {
       const phoneRegex = /^[0-9]{10,15}$/;
-      const cleanPhone = formData.phone.replace(/[\s\-\(\)]/g, '');
+      const cleanPhone = formData.phone.replace(/[\s()-]/g, '');
       if (!phoneRegex.test(cleanPhone)) {
         alert('Nomor telepon tidak valid (10-15 digit angka)');
         return;
       }
-      
-      // Cek apakah nomor telepon sudah digunakan akun lain
+
       const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const phoneExists = users.some((u: any) => u.phone === cleanPhone && u.email !== user?.email);
-      
+      const phoneExists = users.some((u: UserRecord) => u.phone === cleanPhone && u.email !== user?.email);
       if (phoneExists) {
         alert('Nomor telepon sudah terdaftar di akun lain!');
         return;
       }
     }
-    
-    // Update user data di session
-    const cleanPhone = formData.phone ? formData.phone.replace(/[\s\-\(\)]/g, '') : '';
+
+    const cleanPhone = formData.phone ? formData.phone.replace(/[\s()-]/g, '') : '';
     const updatedUser = {
       ...user,
       name: formData.name,
@@ -168,14 +154,11 @@ const Profile = () => {
       phone: cleanPhone,
       profileImage: profileImage
     };
-    
-    // Update di localStorage user (session)
+
     localStorage.setItem('user', JSON.stringify(updatedUser));
-    
-    // Update juga di users array
+
     const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const userIndex = users.findIndex((u: any) => u.email === user?.email);
-    
+    const userIndex = users.findIndex((u: UserRecord) => u.email === user?.email);
     if (userIndex !== -1) {
       users[userIndex] = {
         ...users[userIndex],
@@ -186,97 +169,67 @@ const Profile = () => {
       };
       localStorage.setItem('users', JSON.stringify(users));
     }
-    
+
     setUser(updatedUser);
     setIsEditing(false);
+    window.dispatchEvent(new Event('userUpdated'));
     alert('Profil berhasil diperbarui!');
   };
 
   const handleRemovePhone = () => {
-    if (!window.confirm('Apakah Anda yakin ingin melepas nomor telepon dari akun ini?')) {
-      return;
-    }
-    
-    // Update user data
-    const updatedUser = {
-      ...user,
-      phone: ''
-    };
-    
-    // Update di localStorage user (session)
+    if (!window.confirm('Apakah Anda yakin ingin melepas nomor telepon dari akun ini?')) return;
+
+    const updatedUser = { ...user, phone: '' };
     localStorage.setItem('user', JSON.stringify(updatedUser));
-    
-    // Update juga di users array
+
     const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const userIndex = users.findIndex((u: any) => u.email === user?.email);
-    
+    const userIndex = users.findIndex((u: UserRecord) => u.email === user?.email);
     if (userIndex !== -1) {
       users[userIndex].phone = '';
       localStorage.setItem('users', JSON.stringify(users));
     }
-    
+
     setUser(updatedUser);
     setFormData({ ...formData, phone: '' });
-    
-    // Trigger event untuk update header
     window.dispatchEvent(new Event('userUpdated'));
-    
     alert('Nomor telepon berhasil dilepas dari akun!');
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validasi password lama harus diisi
+
     if (!formData.currentPassword) {
       alert('Password saat ini harus diisi!');
       return;
     }
-    
-    // Validasi password baru
     if (formData.newPassword !== formData.confirmPassword) {
       alert('Password baru dan konfirmasi password tidak sama!');
       return;
     }
-    
     if (formData.newPassword.length < 6) {
       alert('Password minimal 6 karakter!');
       return;
     }
 
     try {
-      // Ambil data user dari localStorage users
       const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const userIndex = users.findIndex((u: any) => u.email === user?.email);
-      
+      const userIndex = users.findIndex((u: UserRecord) => u.email === user?.email);
       if (userIndex === -1) {
         alert('User tidak ditemukan!');
         return;
       }
-      
-      // Verifikasi password lama
-      const isPasswordValid = await verifyPassword(formData.currentPassword, users[userIndex].password);
-      
+
+      const isPasswordValid = await verifyPassword(formData.currentPassword, users[userIndex].password as string);
       if (!isPasswordValid) {
         alert('Anda memasukkan password yang salah!');
         return;
       }
-      
-      // Hash password baru
+
       const newHashedPassword = await hashPassword(formData.newPassword);
-      
-      // Update password di users array
       users[userIndex].password = newHashedPassword;
       localStorage.setItem('users', JSON.stringify(users));
-      
-      // Reset form
-      setFormData({
-        ...formData,
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      });
-      
+
+      setFormData({ ...formData, currentPassword: '', newPassword: '', confirmPassword: '' });
       alert('Password berhasil diubah!');
     } catch (error) {
       console.error('Change password error:', error);
@@ -291,39 +244,29 @@ const Profile = () => {
     }
 
     try {
-      // Ambil data user dari localStorage
       const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const userIndex = users.findIndex((u: any) => u.email === user?.email);
-      
+      const userIndex = users.findIndex((u: UserRecord) => u.email === user?.email);
       if (userIndex === -1) {
         alert('User tidak ditemukan!');
         return;
       }
-      
-      // Verifikasi password
-      const isPasswordValid = await verifyPassword(deleteConfirmPassword, users[userIndex].password);
-      
+
+      const isPasswordValid = await verifyPassword(deleteConfirmPassword, users[userIndex].password as string);
       if (!isPasswordValid) {
         alert('Password salah! Penghapusan akun dibatalkan.');
         return;
       }
-      
-      // Hapus user dari array
+
       users.splice(userIndex, 1);
       localStorage.setItem('users', JSON.stringify(users));
-      
-      // Hapus data aktivitas user
+
       const userActivities = JSON.parse(localStorage.getItem('userActivities') || '[]');
-      const filteredActivities = userActivities.filter((activity: any) => activity.userEmail !== user?.email);
+      const filteredActivities = userActivities.filter((activity: ActivityRecord) => activity.userEmail !== user?.email);
       localStorage.setItem('userActivities', JSON.stringify(filteredActivities));
-      
-      // Hapus session
+
       localStorage.removeItem('user');
-      
-      // Redirect ke halaman utama
       alert('Akun berhasil dihapus. Terima kasih telah menggunakan layanan kami.');
       navigate('/');
-      
     } catch (error) {
       console.error('Delete account error:', error);
       alert('Terjadi kesalahan saat menghapus akun!');
@@ -331,344 +274,305 @@ const Profile = () => {
   };
 
   if (!user) {
-    return <Layout><div>Loading...</div></Layout>;
+    return <Layout><p className="text-center py-20 text-slate-400">Loading...</p></Layout>;
   }
+
+  const inputClass = "w-full bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent";
+
+  const stats = [
+    { icon: Activity, label: 'Konsultasi', value: userStats.consultationCount },
+    { icon: BookOpen, label: 'Artikel Dibaca', value: userStats.articlesReadCount },
+    { icon: CalendarDays, label: 'Hari Aktif', value: userStats.activeDaysCount }
+  ];
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto p-4 md:p-8">
-        <h1 className="text-3xl font-bold text-slate-700 mb-8">Akun Saya</h1>
-        
-        {/* Profile Card */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-          <div className="flex flex-col md:flex-row items-center md:items-start mb-6">
-            {/* Profile Image Section */}
-            <div className="relative mb-4 md:mb-0">
-              {profileImage ? (
-                <img 
-                  src={profileImage} 
-                  alt="Profile" 
-                  className="w-32 h-32 rounded-full object-cover border-4 border-sky-200"
-                />
-              ) : (
-                <div className="w-32 h-32 bg-sky-50 rounded-full flex items-center justify-center text-5xl font-bold text-sky-500 border-4 border-sky-200">
-                  {user.name.charAt(0).toUpperCase()}
-                </div>
-              )}
-              
-              {/* Upload Button */}
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="absolute bottom-0 right-0 bg-sky-500 text-white p-2 rounded-full hover:bg-slate-600 transition-colors shadow-lg"
-                title="Upload foto"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </button>
-              
-              {/* Hidden File Input */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-              />
-            </div>
-            
-            <div className="md:ml-6 text-center md:text-left flex-1">
-              <h2 className="text-2xl font-semibold text-gray-800">{user.name}</h2>
-              <p className="text-gray-600 mb-1">{user.email}</p>
-              {user.phone && (
-                <p className="text-gray-600 mb-3">
-                  <span className="inline-flex items-center">
-                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                    {user.phone}
-                  </span>
-                </p>
-              )}
-              
-              {/* Image Actions */}
-              {profileImage && (
-                <div className="flex gap-2 justify-center md:justify-start">
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="text-sm text-sky-500 hover:text-slate-600 font-medium"
-                  >
-                    Ganti Foto
-                  </button>
-                  <span className="text-gray-400">|</span>
-                  <button
-                    onClick={handleRemoveImage}
-                    className="text-sm text-red-600 hover:text-red-700 font-medium"
-                  >
-                    Hapus Foto
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {!isEditing ? (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="bg-sky-500 text-white px-6 py-2 rounded-lg hover:bg-slate-600 transition-colors"
-            >
-              Edit Profil
-            </button>
-          ) : (
-            <form onSubmit={handleSaveProfile} className="space-y-4">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                  Nama Lengkap
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                  Nomor Telepon
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
-                    placeholder="08123456789 atau +628123456789"
+      <section className="py-8 md:py-12">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6">
+
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-700 mb-8">Akun Saya</h1>
+
+          {/* Profile Card */}
+          <div className="bg-white border border-slate-100 rounded-xl p-5 sm:p-7 mb-5">
+
+            {/* Avatar + Info */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 mb-6">
+              {/* Avatar */}
+              <div className="relative flex-shrink-0">
+                {profileImage ? (
+                  <img
+                    src={profileImage}
+                    alt="Profile"
+                    className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-2 border-slate-100"
                   />
-                  {formData.phone && (
+                ) : (
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 bg-sky-50 rounded-full flex items-center justify-center text-3xl sm:text-4xl font-bold text-sky-500 border-2 border-slate-100">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute bottom-0 right-0 w-8 h-8 bg-sky-500 hover:bg-sky-600 text-white rounded-full flex items-center justify-center transition-colors"
+                  title="Upload foto"
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+              </div>
+
+              {/* User Info */}
+              <div className="text-center sm:text-left flex-1 min-w-0">
+                <h2 className="text-xl font-semibold text-slate-700 truncate">{user.name}</h2>
+                <div className="flex items-center justify-center sm:justify-start gap-1.5 mt-1">
+                  <Mail className="w-3.5 h-3.5 text-slate-400" />
+                  <p className="text-sm text-slate-500 truncate">{user.email}</p>
+                </div>
+                {user.phone && (
+                  <div className="flex items-center justify-center sm:justify-start gap-1.5 mt-1">
+                    <Phone className="w-3.5 h-3.5 text-slate-400" />
+                    <p className="text-sm text-slate-500">{user.phone}</p>
+                  </div>
+                )}
+
+                {/* Image Actions */}
+                {profileImage && (
+                  <div className="flex items-center justify-center sm:justify-start gap-3 mt-3">
                     <button
-                      type="button"
-                      onClick={handleRemovePhone}
-                      className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm"
-                      title="Lepas nomor dari akun"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="text-xs font-medium text-sky-500 hover:text-sky-600 transition-colors"
                     >
-                      Lepas
+                      Ganti Foto
                     </button>
-                  )}
+                    <span className="text-slate-200">|</span>
+                    <button
+                      onClick={handleRemoveImage}
+                      className="text-xs font-medium text-red-500 hover:text-red-600 transition-colors"
+                    >
+                      Hapus Foto
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Edit Profile */}
+            {!isEditing ? (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors"
+              >
+                <User className="w-4 h-4" /> Edit Profil
+              </button>
+            ) : (
+              <form onSubmit={handleSaveProfile} className="space-y-4 border-t border-slate-100 pt-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="name" className="block text-xs font-medium text-slate-600 mb-1.5">Nama Lengkap</label>
+                    <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} required className={inputClass} />
+                  </div>
+                  <div>
+                    <label htmlFor="email" className="block text-xs font-medium text-slate-600 mb-1.5">Email</label>
+                    <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required className={inputClass} />
+                  </div>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">
-                  {formData.phone ? 'Satu nomor hanya untuk satu akun' : 'Opsional - Nomor belum terdaftar'}
-                </p>
-              </div>
-              
-              <div className="flex gap-3">
-                <button
-                  type="submit"
-                  className="bg-sky-500 text-white px-6 py-2 rounded-lg hover:bg-slate-600 transition-colors"
-                >
-                  Simpan
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsEditing(false)}
-                  className="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400 transition-colors"
-                >
-                  Batal
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
 
-        {/* Change Password Card */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">Ubah Password</h3>
-          
-          <form onSubmit={handleChangePassword} className="space-y-4">
-            <div>
-              <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                Password Saat Ini
-              </label>
-              <input
-                type="password"
-                id="currentPassword"
-                name="currentPassword"
-                value={formData.currentPassword}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
-                placeholder="Masukkan password saat ini"
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                Password Baru
-              </label>
-              <input
-                type="password"
-                id="newPassword"
-                name="newPassword"
-                value={formData.newPassword}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
-                placeholder="Minimal 6 karakter"
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                Konfirmasi Password Baru
-              </label>
-              <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
-                placeholder="Ketik ulang password baru"
-              />
-            </div>
-            
-            <button
-              type="submit"
-              className="bg-sky-500 text-white px-6 py-2 rounded-lg hover:bg-slate-600 transition-colors"
-            >
-              Ubah Password
-            </button>
-          </form>
-        </div>
-
-        {/* Account Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-          <div className="bg-white rounded-xl shadow-sm p-6 text-center">
-            <div className="text-3xl font-bold text-sky-500">{userStats.consultationCount}</div>
-            <div className="text-gray-600 mt-2">Konsultasi</div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-sm p-6 text-center">
-            <div className="text-3xl font-bold text-sky-500">{userStats.articlesReadCount}</div>
-            <div className="text-gray-600 mt-2">Artikel Dibaca</div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-sm p-6 text-center">
-            <div className="text-3xl font-bold text-sky-500">{userStats.activeDaysCount}</div>
-            <div className="text-gray-600 mt-2">Hari Aktif</div>
-          </div>
-        </div>
-
-        {/* Danger Zone - Delete Account */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mt-6 border-2 border-red-200">
-          <h3 className="text-xl font-semibold text-red-600 mb-4 flex items-center gap-2"><AlertTriangle className="w-5 h-5" /> Zona Berbahaya</h3>
-          <p className="text-gray-600 mb-4">
-            Setelah menghapus akun, semua data Anda akan dihapus secara permanen. 
-            Tindakan ini tidak dapat dibatalkan.
-          </p>
-          <button
-            onClick={() => setShowDeleteDialog(true)}
-            className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors font-semibold"
-          >
-            Hapus Akun Saya
-          </button>
-        </div>
-
-        {/* Delete Account Confirmation Dialog */}
-        {showDeleteDialog && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-              <div className="text-center mb-4">
-                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
+                <div>
+                  <label htmlFor="phone" className="block text-xs font-medium text-slate-600 mb-1.5">Nomor Telepon</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className={`flex-1 ${inputClass}`}
+                      placeholder="08123456789"
+                    />
+                    {formData.phone && (
+                      <button
+                        type="button"
+                        onClick={handleRemovePhone}
+                        className="px-3 py-2 text-xs font-medium bg-red-50 text-red-500 border border-red-100 rounded-lg hover:bg-red-100 transition-colors flex-shrink-0"
+                      >
+                        Lepas
+                      </button>
+                    )}
+                  </div>
+                  <p className="mt-1 text-xs text-slate-400">
+                    {formData.phone ? 'Satu nomor hanya untuk satu akun' : 'Opsional'}
+                  </p>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Hapus Akun?</h3>
-                <p className="text-gray-600 mb-4">
-                  Tindakan ini akan menghapus semua data Anda secara permanen:
-                </p>
-                <ul className="text-left text-sm text-gray-700 mb-4 space-y-2">
-                  <li className="flex items-start">
-                    <span className="text-red-600 mr-2">•</span>
-                    <span>Profil dan informasi akun</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-red-600 mr-2">•</span>
-                    <span>Riwayat konsultasi ({userStats.consultationCount} konsultasi)</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-red-600 mr-2">•</span>
-                    <span>Riwayat artikel dibaca ({userStats.articlesReadCount} artikel)</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-red-600 mr-2">•</span>
-                    <span>Aktivitas {userStats.activeDaysCount} hari</span>
-                  </li>
-                </ul>
+
+                <div className="flex gap-2.5 pt-1">
+                  <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors">
+                    Simpan
+                  </button>
+                  <button type="button" onClick={() => setIsEditing(false)} className="text-sm font-medium text-slate-600 border border-slate-200 px-5 py-2.5 rounded-lg hover:bg-slate-50 transition-colors">
+                    Batal
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-5">
+            {stats.map((stat) => (
+              <div key={stat.label} className="bg-white border border-slate-100 rounded-xl p-4 sm:p-5 text-center">
+                <div className="w-9 h-9 rounded-lg bg-sky-50 flex items-center justify-center mx-auto mb-2">
+                  <stat.icon className="w-4 h-4 text-sky-500" />
+                </div>
+                <p className="text-xl sm:text-2xl font-bold text-slate-700">{stat.value}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{stat.label}</p>
               </div>
-              
-              <div className="mb-4">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Masukkan password untuk konfirmasi
-                </label>
+            ))}
+          </div>
+
+          {/* Change Password */}
+          <div className="bg-white border border-slate-100 rounded-xl p-5 sm:p-7 mb-5">
+            <h3 className="text-lg font-semibold text-slate-700 mb-1 flex items-center gap-2">
+              <Lock className="w-4 h-4 text-slate-400" /> Ubah Password
+            </h3>
+            <p className="text-xs text-slate-400 mb-5">Pastikan password baru minimal 6 karakter</p>
+
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              <div>
+                <label htmlFor="currentPassword" className="block text-xs font-medium text-slate-600 mb-1.5">Password Saat Ini</label>
                 <input
                   type="password"
-                  value={deleteConfirmPassword}
-                  onChange={(e) => setDeleteConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none"
-                  placeholder="Password akun Anda"
+                  id="currentPassword"
+                  name="currentPassword"
+                  value={formData.currentPassword}
+                  onChange={handleChange}
+                  className={inputClass}
+                  placeholder="Masukkan password saat ini"
                 />
               </div>
-              
-              <div className="flex gap-3">
-                <button
-                  onClick={() => {
-                    setShowDeleteDialog(false);
-                    setDeleteConfirmPassword('');
-                  }}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold"
-                >
-                  Batal
-                </button>
-                <button
-                  onClick={handleDeleteAccount}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold"
-                >
-                  Ya, Hapus Akun
-                </button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="newPassword" className="block text-xs font-medium text-slate-600 mb-1.5">Password Baru</label>
+                  <input
+                    type="password"
+                    id="newPassword"
+                    name="newPassword"
+                    value={formData.newPassword}
+                    onChange={handleChange}
+                    className={inputClass}
+                    placeholder="Minimal 6 karakter"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-xs font-medium text-slate-600 mb-1.5">Konfirmasi Password</label>
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    className={inputClass}
+                    placeholder="Ketik ulang password baru"
+                  />
+                </div>
               </div>
+              <button type="submit" className="bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors">
+                Ubah Password
+              </button>
+            </form>
+          </div>
+
+          {/* Danger Zone */}
+          <div className="bg-white border border-red-100 rounded-xl p-5 sm:p-7">
+            <h3 className="text-lg font-semibold text-red-600 mb-1 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" /> Zona Berbahaya
+            </h3>
+            <p className="text-xs text-slate-500 mb-4">
+              Setelah menghapus akun, semua data Anda akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.
+            </p>
+            <button
+              onClick={() => setShowDeleteDialog(true)}
+              className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors"
+            >
+              <Trash2 className="w-4 h-4" /> Hapus Akun Saya
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-5 sm:p-6 max-w-sm w-full">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 bg-red-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle className="w-4 h-4 text-red-500" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-700">Hapus Akun?</h3>
+              </div>
+              <button onClick={() => { setShowDeleteDialog(false); setDeleteConfirmPassword(''); }} className="text-slate-400 hover:text-slate-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-500 mb-4">
+              Tindakan ini akan menghapus semua data Anda secara permanen:
+            </p>
+            <ul className="space-y-1.5 mb-5">
+              {[
+                `Profil dan informasi akun`,
+                `Riwayat konsultasi (${userStats.consultationCount} konsultasi)`,
+                `Riwayat artikel dibaca (${userStats.articlesReadCount} artikel)`,
+                `Aktivitas ${userStats.activeDaysCount} hari`
+              ].map((item, i) => (
+                <li key={i} className="flex items-start gap-2 text-xs text-slate-500">
+                  <span className="text-red-400 mt-0.5">•</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mb-5">
+              <label className="block text-xs font-medium text-slate-600 mb-1.5">Masukkan password untuk konfirmasi</label>
+              <input
+                type="password"
+                value={deleteConfirmPassword}
+                onChange={(e) => setDeleteConfirmPassword(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent"
+                placeholder="Password akun Anda"
+              />
+            </div>
+
+            <div className="flex gap-2.5">
+              <button
+                onClick={() => { setShowDeleteDialog(false); setDeleteConfirmPassword(''); }}
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                className="flex-1 px-4 py-2.5 text-sm font-medium bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Ya, Hapus Akun
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Image Crop Modal */}
-        <ImageCropModal
-          isOpen={isCropModalOpen}
-          imageUrl={tempImageUrl}
-          onClose={() => setIsCropModalOpen(false)}
-          onCropComplete={handleCropComplete}
-        />
-      </div>
+      {/* Image Crop Modal */}
+      <ImageCropModal
+        isOpen={isCropModalOpen}
+        imageUrl={tempImageUrl}
+        onClose={() => setIsCropModalOpen(false)}
+        onCropComplete={handleCropComplete}
+      />
     </Layout>
   );
 };
