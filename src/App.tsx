@@ -18,6 +18,8 @@ import BroadcastManager from "./pages/BroadcastManager";
 import AdminDashboard from "./pages/AdminDashboard";
 import PatientManagement from "./pages/PatientManagement";
 import AdminRegister from "./pages/AdminRegister";
+import RAGManagement from "./pages/RAGManagement";
+import AnnouncementManagement from "./pages/AnnouncementManagement";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { trackDailyActivity } from "./lib/userActivityTracking";
 
@@ -34,14 +36,14 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
+        <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/+$/, '') || '/'}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/tentang" element={<Tentang />} />
           <Route
             path="/penyakit"
             element={
-              <ProtectedRoute allow={[]}>
+              <ProtectedRoute allow={["patient"]}>
                 <Penyakit />
               </ProtectedRoute>
             }
@@ -49,7 +51,7 @@ const App = () => {
 		  <Route
             path="/pencegahan"
             element={
-              <ProtectedRoute allow={[]}>
+              <ProtectedRoute allow={["patient"]}>
                 <Pencegahan />
               </ProtectedRoute>
             }
@@ -57,7 +59,7 @@ const App = () => {
 		  <Route
             path="/konsultasi"
             element={
-              <ProtectedRoute allow={[]}>
+              <ProtectedRoute allow={["patient"]}>
                 <Konsultasi />
               </ProtectedRoute>
             }
@@ -95,6 +97,22 @@ const App = () => {
             element={
               <ProtectedRoute allow={["nurse"]}>
                 <BroadcastManager />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/rag"
+            element={
+              <ProtectedRoute allow={["nurse"]}>
+                <RAGManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/announcements"
+            element={
+              <ProtectedRoute allow={["nurse"]}>
+                <AnnouncementManagement />
               </ProtectedRoute>
             }
           />

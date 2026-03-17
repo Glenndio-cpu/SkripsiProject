@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Home, Info, Activity, Shield, MessageCircle, Phone, BarChart3, Users, Megaphone, UserPlus, User, LogOut, LogIn, Lock, X, FileEdit } from 'lucide-react';
+import { Home, Info, Activity, Shield, MessageCircle, Phone, BarChart3, Users, Megaphone, UserPlus, User, LogOut, LogIn, Lock, X, FileEdit, Database, Bell } from 'lucide-react';
+import api from '../../lib/api';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -29,7 +30,8 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     };
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await api.logout().catch(() => undefined);
     localStorage.removeItem('user');
     setUser(null);
     window.dispatchEvent(new Event('userUpdated'));
@@ -40,18 +42,20 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const isActive = (path: string) => location.pathname === path;
 
   const navItems = [
-    { to: '/', icon: Home, label: 'Beranda', requiresAuth: false },
-    { to: '/tentang', icon: Info, label: 'Tentang', requiresAuth: false },
-    { to: '/penyakit', icon: Activity, label: 'Info Penyakit', requiresAuth: true },
-    { to: '/pencegahan', icon: Shield, label: 'Pencegahan', requiresAuth: true },
-    { to: '/konsultasi', icon: MessageCircle, label: 'Konsultasi', requiresAuth: true },
-    { to: '/kontak', icon: Phone, label: 'Kontak', requiresAuth: false },
+    { to: '/', icon: Home, label: 'Beranda', requiresAuth: false, showFor: 'all' as const },
+    { to: '/tentang', icon: Info, label: 'Tentang', requiresAuth: false, showFor: 'all' as const },
+    { to: '/penyakit', icon: Activity, label: 'Info Penyakit', requiresAuth: true, showFor: 'patient' as const },
+    { to: '/pencegahan', icon: Shield, label: 'Pencegahan', requiresAuth: true, showFor: 'patient' as const },
+    { to: '/konsultasi', icon: MessageCircle, label: 'Konsultasi', requiresAuth: true, showFor: 'patient' as const },
+    { to: '/kontak', icon: Phone, label: 'Kontak', requiresAuth: false, showFor: 'all' as const },
   ];
 
   const adminItems = [
     { to: '/admin/dashboard', icon: BarChart3, label: 'Dashboard Admin' },
     { to: '/admin/patients', icon: Users, label: 'Kelola Pasien' },
     { to: '/admin/broadcast', icon: Megaphone, label: 'Broadcast WhatsApp' },
+    { to: '/admin/rag', icon: Database, label: 'Kelola RAG & AI' },
+    { to: '/admin/announcements', icon: Bell, label: 'Pengumuman' },
     { to: '/admin/register', icon: UserPlus, label: 'Tambah Admin' },
   ];
 
@@ -95,6 +99,13 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-800 truncate">{user.name}</p>
                 <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                <span className={`inline-block mt-1 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                  user.role === 'nurse'
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-sky-100 text-sky-700'
+                }`}>
+                  {user.role === 'nurse' ? 'Admin' : 'Pasien'}
+                </span>
               </div>
             </div>
           </div>
@@ -104,7 +115,14 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         <div className="px-3">
           <p className="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">Menu</p>
           <nav className="space-y-0.5">
-            {navItems.map((item) => {
+            {navItems
+              .filter((item) => {
+                if (item.showFor === 'all') return true;
+                if (!user) return true; // show for non-logged-in users (will redirect to login)
+                if (item.showFor === 'patient' && user.role === 'nurse') return false;
+                return true;
+              })
+              .map((item) => {
               const locked = item.requiresAuth && !user;
               const Icon = locked ? Lock : item.icon;
               const target = locked ? '/login' : item.to;

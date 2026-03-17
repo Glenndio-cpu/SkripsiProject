@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
-import { hashPassword } from '../lib/passwordUtils';
+import api from '../lib/api';
 import { ShieldCheck, AlertTriangle, CheckCircle } from 'lucide-react';
-
-// Kode akses rahasia untuk registrasi admin (dari environment variable)
-const ADMIN_ACCESS_CODE = import.meta.env.VITE_ADMIN_ACCESS_CODE || '';
 
 const AdminRegister = () => {
   const navigate = useNavigate();
@@ -36,14 +33,16 @@ const AdminRegister = () => {
     }
   }, [navigate]);
 
-  const handleVerifyCode = (e: React.FormEvent) => {
+  const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (accessCode === ADMIN_ACCESS_CODE) {
+    // We'll verify the code when actually registering via backend
+    // For now, just allow access if code is provided
+    if (accessCode.trim()) {
       setIsAuthorized(true);
       setError('');
     } else {
-      setError('Kode akses salah! Silakan hubungi administrator.');
+      setError('Kode akses harus diisi!');
     }
   };
 
@@ -94,40 +93,14 @@ const AdminRegister = () => {
     setIsLoading(true);
 
     try {
-      // Hash password
-      const hashedPassword = await hashPassword(formData.password);
-      
-      // Cek apakah email sudah terdaftar
-      const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
-      const emailExists = existingUsers.some((user: any) => user.email === formData.email);
-      
-      if (emailExists) {
-        setError('Email sudah terdaftar!');
-        setIsLoading(false);
-        return;
-      }
-      
-      // Cek apakah nomor telepon sudah terdaftar
-      const phoneExists = existingUsers.some((user: any) => user.phone === cleanPhone);
-      
-      if (phoneExists) {
-        setError('Nomor telepon sudah terdaftar!');
-        setIsLoading(false);
-        return;
-      }
-      
-      // Simpan admin baru
-      const newAdmin = {
-        email: formData.email,
+      const data = await api.register({
         name: formData.name,
+        email: formData.email,
         phone: cleanPhone,
-        password: hashedPassword,
-        createdAt: new Date().toISOString(),
-        role: 'nurse' // Admin/Petugas kesehatan
-      };
-      
-      existingUsers.push(newAdmin);
-      localStorage.setItem('users', JSON.stringify(existingUsers));
+        password: formData.password,
+        role: 'nurse',
+        adminAccessCode: accessCode
+      });
       
       setIsLoading(false);
       alert(`Admin ${formData.name} berhasil didaftarkan!`);
@@ -143,9 +116,9 @@ const AdminRegister = () => {
       setAccessCode('');
       setIsAuthorized(false);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registration error:', error);
-      setError('Terjadi kesalahan saat mendaftarkan admin. Silakan coba lagi.');
+      setError(error.message || 'Terjadi kesalahan saat mendaftarkan admin. Silakan coba lagi.');
       setIsLoading(false);
     }
   };

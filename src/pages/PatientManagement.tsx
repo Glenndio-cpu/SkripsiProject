@@ -2,8 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import { getAllUsers, type UserData } from '../lib/userBroadcast';
-import { getAllUserStats, type UserActivity } from '../lib/userActivityTracking';
+import { getAllUserStats } from '../lib/userActivityTracking';
+import api from '../lib/api';
 import { Download, Users, Search } from 'lucide-react';
+
+interface UserActivity {
+  email: string;
+  consultationCount: number;
+  articlesRead: string[];
+  activeDays: string[];
+  lastUpdated: string;
+}
+
+function maskKtp(ktp?: string): string {
+  if (!ktp) return '-';
+  const clean = ktp.replace(/\D/g, '');
+  if (!clean) return '-';
+  if (clean.length <= 4) return clean;
+  return `${'*'.repeat(clean.length - 4)}${clean.slice(-4)}`;
+}
 
 const PatientManagement = () => {
   const navigate = useNavigate();
@@ -13,6 +30,7 @@ const PatientManagement = () => {
   const [selectedPatient, setSelectedPatient] = useState<UserData | null>(null);
   const [patientActivity, setPatientActivity] = useState<UserActivity | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [allActivities, setAllActivities] = useState<UserActivity[]>([]);
   const [filterType, setFilterType] = useState<'all' | 'with-phone' | 'active' | 'new'>('all');
 
   useEffect(() => {
@@ -34,14 +52,17 @@ const PatientManagement = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [searchTerm, filterType, patients]);
+  }, [searchTerm, filterType, patients, allActivities]);
 
-  const loadPatients = () => {
-    const allUsers = getAllUsers();
-    // Filter only patients (non-nurse users)
-    const patientList = allUsers.filter(u => u.role !== 'nurse');
-    setPatients(patientList);
-    setFilteredPatients(patientList);
+  const loadPatients = async () => {
+    const [usersData, activitiesData] = await Promise.all([
+      getAllUsers(),
+      getAllUserStats()
+    ]);
+    const patientList = usersData.filter((u: any) => u.role !== 'nurse');
+    setPatients(patientList as any);
+    setFilteredPatients(patientList as any);
+    setAllActivities(activitiesData as any);
   };
 
   const applyFilters = () => {
@@ -53,7 +74,8 @@ const PatientManagement = () => {
       filtered = filtered.filter(p =>
         p.name.toLowerCase().includes(term) ||
         p.email.toLowerCase().includes(term) ||
-        (p.phone && p.phone.includes(term))
+        (p.phone && p.phone.includes(term)) ||
+        (p.ktp && p.ktp.includes(term))
       );
     }
 
@@ -62,15 +84,15 @@ const PatientManagement = () => {
       case 'with-phone':
         filtered = filtered.filter(p => p.phone && p.phone.length > 0);
         break;
-      case 'active':
-        const allActivities = getAllUserStats();
+      case 'active': {
         const today = new Date().toISOString().split('T')[0];
         const activeEmails = allActivities
-          .filter(a => a.activeDays.includes(today))
-          .map(a => a.email);
+          .filter((a: any) => a.activeDays?.includes(today))
+          .map((a: any) => a.email);
         filtered = filtered.filter(p => activeEmails.includes(p.email));
         break;
-      case 'new':
+      }
+      case 'new': {
         const weekAgo = new Date();
         weekAgo.setDate(weekAgo.getDate() - 7);
         filtered = filtered.filter(p => {
@@ -78,6 +100,7 @@ const PatientManagement = () => {
           return createdDate >= weekAgo;
         });
         break;
+      }
     }
 
     setFilteredPatients(filtered);
@@ -86,9 +109,7 @@ const PatientManagement = () => {
   const handleViewDetails = (patient: UserData) => {
     setSelectedPatient(patient);
     
-    // Load patient activity
-    const allActivities = getAllUserStats();
-    const activity = allActivities.find(a => a.email === patient.email);
+    const activity = allActivities.find((a: any) => a.email === patient.email);
     setPatientActivity(activity || {
       email: patient.email,
       consultationCount: 0,
@@ -100,34 +121,30 @@ const PatientManagement = () => {
     setShowDetailModal(true);
   };
 
-  const handleDeletePatient = (patient: UserData) => {
+  const handleDeletePatient = async (patient: UserData) => {
     if (!window.confirm(`Apakah Anda yakin ingin menghapus pasien ${patient.name}?`)) {
       return;
     }
 
-    // Remove from users list
-    const allUsers = getAllUsers();
-    const updatedUsers = allUsers.filter(u => u.email !== patient.email);
-    localStorage.setItem('users', JSON.stringify(updatedUsers));
-
-    // Remove activity data
-    const allActivities = getAllUserStats();
-    const updatedActivities = allActivities.filter(a => a.email !== patient.email);
-    localStorage.setItem('userActivities', JSON.stringify(updatedActivities));
-
-    alert(`Pasien ${patient.name} berhasil dihapus`);
-    loadPatients();
-    setShowDetailModal(false);
+    try {
+      const adminData = localStorage.getItem('user');
+      const adminEmail = adminData ? JSON.parse(adminData).email : '';
+      await api.deleteAccount(patient.email, '__admin_delete__', adminEmail);
+      alert(`Pasien ${patient.name} berhasil dihapus`);
+      loadPatients();
+      setShowDetailModal(false);
+    } catch (error) {
+      console.error('Delete patient error:', error);
+      alert('Gagal menghapus pasien');
+    }
   };
 
   const exportToCSV = () => {
-    let csv = 'Nama,Email,Nomor HP,Tanggal Daftar,Konsultasi,Artikel Dibaca,Hari Aktif\n';
-    
-    const allActivities = getAllUserStats();
+    let csv = 'Nama,Email,Nomor HP,Nomor KTP,Tanggal Daftar,Konsultasi,Artikel Dibaca,Hari Aktif\n';
     
     filteredPatients.forEach(patient => {
-      const activity = allActivities.find(a => a.email === patient.email);
-      csv += `"${patient.name}","${patient.email}","${patient.phone || '-'}","${new Date(patient.createdAt).toLocaleDateString('id-ID')}",${activity?.consultationCount || 0},${activity?.articlesRead.length || 0},${activity?.activeDays.length || 0}\n`;
+      const activity = allActivities.find((a: any) => a.email === patient.email);
+      csv += `"${patient.name}","${patient.email}","${patient.phone || '-'}","${patient.ktp || '-'}","${new Date(patient.createdAt).toLocaleDateString('id-ID')}",${activity?.consultationCount || 0},${activity?.articlesRead?.length || 0},${activity?.activeDays?.length || 0}\n`;
     });
 
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -215,6 +232,9 @@ const PatientManagement = () => {
                       Kontak
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      KTP
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Tanggal Daftar
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -227,7 +247,7 @@ const PatientManagement = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredPatients.map((patient, index) => {
-                    const activity = getAllUserStats().find(a => a.email === patient.email);
+                    const activity = allActivities.find((a: any) => a.email === patient.email);
                     return (
                       <tr key={index} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -255,6 +275,9 @@ const PatientManagement = () => {
                           <p className="text-sm text-gray-900">
                             {patient.phone || '-'}
                           </p>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <p className="text-sm text-gray-900">{maskKtp(patient.ktp)}</p>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <p className="text-sm text-gray-900">
@@ -339,6 +362,12 @@ const PatientManagement = () => {
                     <p className="text-sm text-gray-500 mb-1">Nomor HP</p>
                     <p className="font-medium text-gray-800">
                       {selectedPatient.phone || 'Tidak ada'}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-500 mb-1">Nomor KTP</p>
+                    <p className="font-medium text-gray-800">
+                      {maskKtp(selectedPatient.ktp)}
                     </p>
                   </div>
                   <div className="bg-gray-50 p-4 rounded-lg">

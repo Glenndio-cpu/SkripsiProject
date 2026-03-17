@@ -274,7 +274,7 @@ const Penyakit = () => {
             <div>
               <h3 className="text-sm font-semibold text-slate-700 mb-1">Memerlukan Informasi Lebih Lanjut?</h3>
               <p className="text-sm text-slate-500 leading-relaxed">
-                Jika Anda mencari informasi tentang penyakit lainnya atau ingin mengetahui lebih detail, jangan ragu untuk bertanya kepada asisten virtual kami dengan mengklik ikon dokter di pojok kanan bawah layar.
+                Jika Anda mencari informasi tentang penyakit lainnya atau ingin mengetahui lebih detail, jangan ragu untuk mengunjungi halaman <a href="/konsultasi" className="text-sky-500 hover:text-sky-600 font-medium underline">Konsultasi</a> untuk bertanya kepada chatbot AI kami.
               </p>
             </div>
           </div>

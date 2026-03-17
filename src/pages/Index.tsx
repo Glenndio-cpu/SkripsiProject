@@ -1,11 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
+import AnnouncementBanner from '../components/AnnouncementBanner';
 import { Pill, Apple, Activity, MessageCircle, ArrowRight, Stethoscope, Users, CheckCircle, Clock, Shield, Sparkles } from 'lucide-react';
 
 const Index = () => {
   return (
     <Layout>
+      {/* Announcement Banner */}
+      <AnnouncementBanner />
+
       {/* Hero */}
       <section className="py-12 md:py-20 lg:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">

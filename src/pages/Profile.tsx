@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import ImageCropModal from '../components/ImageCropModal';
-import { hashPassword, verifyPassword } from '../lib/passwordUtils';
-import { AlertTriangle, Camera, Phone, Mail, X, Trash2, Lock, User, Activity, BookOpen, CalendarDays } from 'lucide-react';
+import api from '../lib/api';
+import { AlertTriangle, Camera, Phone, Mail, X, Trash2, Lock, User, Activity, BookOpen, CalendarDays, BarChart3, Users, Megaphone, UserPlus, Bell } from 'lucide-react';
 import { getUserStats } from '../lib/userActivityTracking';
 
 interface UserRecord {
   email?: string;
   phone?: string;
+  ktp?: string;
   profileImage?: string;
   password?: string;
   name?: string;
@@ -23,7 +24,7 @@ interface ActivityRecord {
 const Profile = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [user, setUser] = useState<{ name: string; email: string; phone?: string; profileImage?: string } | null>(null);
+  const [user, setUser] = useState<{ name: string; email: string; phone?: string; ktp?: string; profileImage?: string; role?: string } | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [profileImage, setProfileImage] = useState<string>('');
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
@@ -37,7 +38,8 @@ const Profile = () => {
     phone: '',
     currentPassword: '',
     newPassword: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    ktp: ''
   });
 
   useEffect(() => {
@@ -54,11 +56,19 @@ const Profile = () => {
       ...prev,
       name: parsedUser.name,
       email: parsedUser.email,
-      phone: parsedUser.phone || ''
+      phone: parsedUser.phone || '',
+      ktp: parsedUser.ktp || ''
     }));
 
-    const stats = getUserStats();
-    setUserStats(stats);
+    // Only load stats for patients, not admins
+    if (parsedUser.role !== 'nurse') {
+      const stats = getUserStats();
+      if (stats instanceof Promise) {
+        stats.then(s => setUserStats(s));
+      } else {
+        setUserStats(stats);
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -97,12 +107,8 @@ const Profile = () => {
     localStorage.setItem('user', JSON.stringify(updatedUser));
     setUser(updatedUser);
 
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const userIndex = users.findIndex((u: UserRecord) => u.email === currentUser.email);
-    if (userIndex !== -1) {
-      users[userIndex].profileImage = croppedImageUrl;
-      localStorage.setItem('users', JSON.stringify(users));
-    }
+    // Update on backend
+    api.updateProfile({ email: currentUser.email, profileImage: croppedImageUrl }).catch(console.error);
 
     window.dispatchEvent(new Event('userUpdated'));
     alert('Foto profil berhasil diperbarui!');
@@ -116,18 +122,14 @@ const Profile = () => {
     localStorage.setItem('user', JSON.stringify(updatedUser));
     setUser(updatedUser);
 
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const userIndex = users.findIndex((u: UserRecord) => u.email === currentUser.email);
-    if (userIndex !== -1) {
-      users[userIndex].profileImage = '';
-      localStorage.setItem('users', JSON.stringify(users));
-    }
+    // Update on backend
+    api.updateProfile({ email: currentUser.email, profileImage: '' }).catch(console.error);
 
     window.dispatchEvent(new Event('userUpdated'));
     alert('Foto profil berhasil dihapus!');
   };
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (formData.phone) {
@@ -137,62 +139,60 @@ const Profile = () => {
         alert('Nomor telepon tidak valid (10-15 digit angka)');
         return;
       }
-
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const phoneExists = users.some((u: UserRecord) => u.phone === cleanPhone && u.email !== user?.email);
-      if (phoneExists) {
-        alert('Nomor telepon sudah terdaftar di akun lain!');
-        return;
-      }
     }
 
     const cleanPhone = formData.phone ? formData.phone.replace(/[\s()-]/g, '') : '';
-    const updatedUser = {
-      ...user,
-      name: formData.name,
-      email: formData.email,
-      phone: cleanPhone,
-      profileImage: profileImage
-    };
+    const cleanKtp = formData.ktp ? formData.ktp.replace(/\D/g, '') : '';
 
-    localStorage.setItem('user', JSON.stringify(updatedUser));
+    if (cleanKtp && !/^\d{16}$/.test(cleanKtp)) {
+      alert('Nomor KTP harus 16 digit angka');
+      return;
+    }
 
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const userIndex = users.findIndex((u: UserRecord) => u.email === user?.email);
-    if (userIndex !== -1) {
-      users[userIndex] = {
-        ...users[userIndex],
+    try {
+      await api.updateProfile({
+        email: user?.email || '',
+        name: formData.name,
+        phone: cleanPhone,
+        ktp: cleanKtp,
+        profileImage: profileImage
+      });
+
+      const updatedUser = {
+        ...user,
         name: formData.name,
         email: formData.email,
         phone: cleanPhone,
+        ktp: cleanKtp,
         profileImage: profileImage
       };
-      localStorage.setItem('users', JSON.stringify(users));
-    }
 
-    setUser(updatedUser);
-    setIsEditing(false);
-    window.dispatchEvent(new Event('userUpdated'));
-    alert('Profil berhasil diperbarui!');
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+      setIsEditing(false);
+      window.dispatchEvent(new Event('userUpdated'));
+      alert('Profil berhasil diperbarui!');
+    } catch (error: any) {
+      console.error('Save profile error:', error);
+      alert(error.message || 'Terjadi kesalahan saat menyimpan profil!');
+    }
   };
 
-  const handleRemovePhone = () => {
+  const handleRemovePhone = async () => {
     if (!window.confirm('Apakah Anda yakin ingin melepas nomor telepon dari akun ini?')) return;
 
-    const updatedUser = { ...user, phone: '' };
-    localStorage.setItem('user', JSON.stringify(updatedUser));
+    try {
+      await api.updateProfile({ email: user?.email || '', phone: '' });
 
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const userIndex = users.findIndex((u: UserRecord) => u.email === user?.email);
-    if (userIndex !== -1) {
-      users[userIndex].phone = '';
-      localStorage.setItem('users', JSON.stringify(users));
+      const updatedUser = { ...user, phone: '' };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+      setFormData({ ...formData, phone: '' });
+      window.dispatchEvent(new Event('userUpdated'));
+      alert('Nomor telepon berhasil dilepas dari akun!');
+    } catch (error: any) {
+      alert(error.message || 'Gagal melepas nomor telepon!');
     }
-
-    setUser(updatedUser);
-    setFormData({ ...formData, phone: '' });
-    window.dispatchEvent(new Event('userUpdated'));
-    alert('Nomor telepon berhasil dilepas dari akun!');
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {
@@ -212,28 +212,12 @@ const Profile = () => {
     }
 
     try {
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const userIndex = users.findIndex((u: UserRecord) => u.email === user?.email);
-      if (userIndex === -1) {
-        alert('User tidak ditemukan!');
-        return;
-      }
-
-      const isPasswordValid = await verifyPassword(formData.currentPassword, users[userIndex].password as string);
-      if (!isPasswordValid) {
-        alert('Anda memasukkan password yang salah!');
-        return;
-      }
-
-      const newHashedPassword = await hashPassword(formData.newPassword);
-      users[userIndex].password = newHashedPassword;
-      localStorage.setItem('users', JSON.stringify(users));
-
+      const data = await api.changePassword(user?.email || '', formData.currentPassword, formData.newPassword);
       setFormData({ ...formData, currentPassword: '', newPassword: '', confirmPassword: '' });
       alert('Password berhasil diubah!');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Change password error:', error);
-      alert('Terjadi kesalahan saat mengubah password!');
+      alert(error.message || 'Gagal mengubah password!');
     }
   };
 
@@ -244,32 +228,16 @@ const Profile = () => {
     }
 
     try {
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const userIndex = users.findIndex((u: UserRecord) => u.email === user?.email);
-      if (userIndex === -1) {
-        alert('User tidak ditemukan!');
-        return;
-      }
-
-      const isPasswordValid = await verifyPassword(deleteConfirmPassword, users[userIndex].password as string);
-      if (!isPasswordValid) {
-        alert('Password salah! Penghapusan akun dibatalkan.');
-        return;
-      }
-
-      users.splice(userIndex, 1);
-      localStorage.setItem('users', JSON.stringify(users));
-
-      const userActivities = JSON.parse(localStorage.getItem('userActivities') || '[]');
-      const filteredActivities = userActivities.filter((activity: ActivityRecord) => activity.userEmail !== user?.email);
-      localStorage.setItem('userActivities', JSON.stringify(filteredActivities));
+      await api.deleteAccount(user?.email || '', deleteConfirmPassword);
+      await api.logout().catch(() => undefined);
 
       localStorage.removeItem('user');
+      window.dispatchEvent(new Event('userUpdated'));
       alert('Akun berhasil dihapus. Terima kasih telah menggunakan layanan kami.');
       navigate('/');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Delete account error:', error);
-      alert('Terjadi kesalahan saat menghapus akun!');
+      alert(error.message || 'Password salah! Penghapusan akun dibatalkan.');
     }
   };
 
@@ -329,6 +297,13 @@ const Profile = () => {
               {/* User Info */}
               <div className="text-center sm:text-left flex-1 min-w-0">
                 <h2 className="text-xl font-semibold text-slate-700 truncate">{user.name}</h2>
+                <span className={`inline-block mt-1 mb-1 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                  user.role === 'nurse'
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-sky-100 text-sky-700'
+                }`}>
+                  {user.role === 'nurse' ? 'Admin' : 'Pasien'}
+                </span>
                 <div className="flex items-center justify-center sm:justify-start gap-1.5 mt-1">
                   <Mail className="w-3.5 h-3.5 text-slate-400" />
                   <p className="text-sm text-slate-500 truncate">{user.email}</p>
@@ -337,6 +312,12 @@ const Profile = () => {
                   <div className="flex items-center justify-center sm:justify-start gap-1.5 mt-1">
                     <Phone className="w-3.5 h-3.5 text-slate-400" />
                     <p className="text-sm text-slate-500">{user.phone}</p>
+                  </div>
+                )}
+                {user.ktp && (
+                  <div className="flex items-center justify-center sm:justify-start gap-1.5 mt-1">
+                    <User className="w-3.5 h-3.5 text-slate-400" />
+                    <p className="text-sm text-slate-500">KTP: {user.ktp}</p>
                   </div>
                 )}
 
@@ -404,9 +385,23 @@ const Profile = () => {
                       </button>
                     )}
                   </div>
-                  <p className="mt-1 text-xs text-slate-400">
-                    {formData.phone ? 'Satu nomor hanya untuk satu akun' : 'Opsional'}
-                  </p>
+                  <p className="mt-1 text-xs text-slate-400">{formData.phone ? 'Satu nomor hanya untuk satu akun' : 'Opsional'}</p>
+                </div>
+
+                <div>
+                  <label htmlFor="ktp" className="block text-xs font-medium text-slate-600 mb-1.5">Nomor KTP</label>
+                  <input
+                    type="text"
+                    id="ktp"
+                    name="ktp"
+                    value={formData.ktp}
+                    onChange={handleChange}
+                    className={inputClass}
+                    placeholder="16 digit KTP"
+                    inputMode="numeric"
+                    maxLength={16}
+                  />
+                  <p className="mt-1 text-xs text-slate-400">Diisi jika Anda ingin melengkapi identitas pasien.</p>
                 </div>
 
                 <div className="flex gap-2.5 pt-1">
@@ -421,7 +416,36 @@ const Profile = () => {
             )}
           </div>
 
-          {/* Stats */}
+          {/* Admin Quick Links */}
+          {user.role === 'nurse' && (
+          <div className="bg-white border border-emerald-100 rounded-xl p-5 sm:p-7 mb-5">
+            <h3 className="text-lg font-semibold text-slate-700 mb-1 flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-emerald-500" /> Panel Admin
+            </h3>
+            <p className="text-xs text-slate-400 mb-4">Akses cepat ke fitur administrasi</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { to: '/admin/dashboard', icon: BarChart3, label: 'Dashboard', color: 'bg-emerald-50 text-emerald-600' },
+                { to: '/admin/patients', icon: Users, label: 'Kelola Pasien', color: 'bg-sky-50 text-sky-600' },
+                { to: '/admin/broadcast', icon: Megaphone, label: 'Broadcast', color: 'bg-amber-50 text-amber-600' },
+                { to: '/admin/announcements', icon: Bell, label: 'Pengumuman', color: 'bg-rose-50 text-rose-600' },
+                { to: '/admin/register', icon: UserPlus, label: 'Tambah Admin', color: 'bg-violet-50 text-violet-600' },
+              ].map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border border-slate-100 hover:border-slate-200 transition-colors ${item.color}`}
+                >
+                  <item.icon className="w-5 h-5" />
+                  <span className="text-xs font-medium text-center">{item.label}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+          )}
+
+          {/* Stats – only for patients */}
+          {user.role !== 'nurse' && (
           <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-5">
             {stats.map((stat) => (
               <div key={stat.label} className="bg-white border border-slate-100 rounded-xl p-4 sm:p-5 text-center">
@@ -433,6 +457,7 @@ const Profile = () => {
               </div>
             ))}
           </div>
+          )}
 
           {/* Change Password */}
           <div className="bg-white border border-slate-100 rounded-xl p-5 sm:p-7 mb-5">
@@ -486,7 +511,8 @@ const Profile = () => {
             </form>
           </div>
 
-          {/* Danger Zone */}
+          {/* Danger Zone – only for patients */}
+          {user.role !== 'nurse' && (
           <div className="bg-white border border-red-100 rounded-xl p-5 sm:p-7">
             <h3 className="text-lg font-semibold text-red-600 mb-1 flex items-center gap-2">
               <AlertTriangle className="w-4 h-4" /> Zona Berbahaya
@@ -501,6 +527,7 @@ const Profile = () => {
               <Trash2 className="w-4 h-4" /> Hapus Akun Saya
             </button>
           </div>
+          )}
         </div>
       </section>
 

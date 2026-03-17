@@ -1,17 +1,15 @@
+import api from './api';
+
 /**
  * User Activity Tracking Service
- * Tracks user statistics: consultations, articles read, and active days
+ * Now uses backend API instead of localStorage
  */
 
-export interface UserActivity {
-  email: string;
+export interface UserStats {
   consultationCount: number;
-  articlesRead: string[]; // Array of article IDs to prevent duplicates
-  activeDays: string[]; // Array of dates (YYYY-MM-DD format)
-  lastUpdated: string;
+  articlesReadCount: number;
+  activeDaysCount: number;
 }
-
-const STORAGE_KEY = 'userActivities';
 
 /**
  * Get current user's email from localStorage
@@ -29,167 +27,83 @@ function getCurrentUserEmail(): string | null {
 }
 
 /**
- * Get all user activities from localStorage
- */
-function getAllActivities(): UserActivity[] {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch (error) {
-    console.error('Error loading user activities:', error);
-    return [];
-  }
-}
-
-/**
- * Save user activities to localStorage
- */
-function saveActivities(activities: UserActivity[]): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(activities));
-  } catch (error) {
-    console.error('Error saving user activities:', error);
-  }
-}
-
-/**
- * Get or create user activity record
- */
-function getUserActivity(email: string): UserActivity {
-  const activities = getAllActivities();
-  let userActivity = activities.find(a => a.email === email);
-  
-  if (!userActivity) {
-    userActivity = {
-      email,
-      consultationCount: 0,
-      articlesRead: [],
-      activeDays: [],
-      lastUpdated: new Date().toISOString()
-    };
-    activities.push(userActivity);
-    saveActivities(activities);
-  }
-  
-  return userActivity;
-}
-
-/**
- * Update user activity record
- */
-function updateUserActivity(activity: UserActivity): void {
-  const activities = getAllActivities();
-  const index = activities.findIndex(a => a.email === activity.email);
-  
-  if (index !== -1) {
-    activities[index] = {
-      ...activity,
-      lastUpdated: new Date().toISOString()
-    };
-  } else {
-    activities.push({
-      ...activity,
-      lastUpdated: new Date().toISOString()
-    });
-  }
-  
-  saveActivities(activities);
-}
-
-/**
  * Track a consultation (increments count)
  */
 export function trackConsultation(): void {
   const email = getCurrentUserEmail();
   if (!email) return;
-  
-  const activity = getUserActivity(email);
-  activity.consultationCount += 1;
-  updateUserActivity(activity);
+  api.trackActivity(email, 'consultation').catch(err =>
+    console.error('Failed to track consultation:', err)
+  );
 }
 
 /**
  * Track an article read (prevents duplicates)
- * @param articleId Unique identifier for the article (e.g., disease name)
  */
 export function trackArticleRead(articleId: string): void {
   const email = getCurrentUserEmail();
   if (!email) return;
-  
-  const activity = getUserActivity(email);
-  
-  // Only add if not already read
-  if (!activity.articlesRead.includes(articleId)) {
-    activity.articlesRead.push(articleId);
-    updateUserActivity(activity);
-  }
+  api.trackActivity(email, 'article', articleId).catch(err =>
+    console.error('Failed to track article:', err)
+  );
 }
 
 /**
- * Track daily activity (adds today's date if not already tracked)
+ * Track daily activity
  */
 export function trackDailyActivity(): void {
   const email = getCurrentUserEmail();
   if (!email) return;
-  
-  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-  const activity = getUserActivity(email);
-  
-  // Only add if today not already tracked
-  if (!activity.activeDays.includes(today)) {
-    activity.activeDays.push(today);
-    updateUserActivity(activity);
-  }
+  api.trackActivity(email, 'daily').catch(err =>
+    console.error('Failed to track daily activity:', err)
+  );
 }
 
 /**
  * Get statistics for current user
  */
-export interface UserStats {
-  consultationCount: number;
-  articlesReadCount: number;
-  activeDaysCount: number;
-}
-
-export function getUserStats(): UserStats {
+export async function getUserStats(): Promise<UserStats> {
   const email = getCurrentUserEmail();
-  
   if (!email) {
-    return {
-      consultationCount: 0,
-      articlesReadCount: 0,
-      activeDaysCount: 0
-    };
+    return { consultationCount: 0, articlesReadCount: 0, activeDaysCount: 0 };
   }
-  
-  const activity = getUserActivity(email);
-  
-  return {
-    consultationCount: activity.consultationCount,
-    articlesReadCount: activity.articlesRead.length,
-    activeDaysCount: activity.activeDays.length
-  };
-}
-
-/**
- * Reset all statistics for current user (for testing)
- */
-export function resetUserStats(): void {
-  const email = getCurrentUserEmail();
-  if (!email) return;
-  
-  const activities = getAllActivities();
-  const index = activities.findIndex(a => a.email === email);
-  
-  if (index !== -1) {
-    activities.splice(index, 1);
-    saveActivities(activities);
+  try {
+    return await api.getActivity(email);
+  } catch {
+    return { consultationCount: 0, articlesReadCount: 0, activeDaysCount: 0 };
   }
 }
 
 /**
- * Get all statistics (for admin/debugging)
+ * Sync version for backward compatibility - returns defaults, triggers async fetch
  */
-export function getAllUserStats(): UserActivity[] {
-  return getAllActivities();
+export function getUserStatsSync(): UserStats {
+  return { consultationCount: 0, articlesReadCount: 0, activeDaysCount: 0 };
+}
+
+/**
+ * Get all user activities (admin)
+ */
+export async function getAllUserStats(): Promise<any[]> {
+  try {
+    const adminEmail = getAdminEmail();
+    const data = await api.getAllActivities(adminEmail);
+    return data.activities || [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Get admin email from localStorage session
+ */
+function getAdminEmail(): string | undefined {
+  try {
+    const raw = localStorage.getItem('user');
+    if (raw) {
+      const user = JSON.parse(raw);
+      if (user.role === 'nurse') return user.email;
+    }
+  } catch { /* ignore */ }
+  return undefined;
 }

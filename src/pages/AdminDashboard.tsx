@@ -34,20 +34,20 @@ const AdminDashboard = () => {
     loadDashboardData();
   }, [navigate]);
 
-  const loadDashboardData = () => {
-    const allUsers = getAllUsers();
-    const allActivities = getAllUserStats();
+  const loadDashboardData = async () => {
+    const allUsers = await getAllUsers();
+    const allActivities = await getAllUserStats();
     
     // Filter only patients (non-nurse users)
     const patients = allUsers.filter(u => u.role !== 'nurse');
     
     // Calculate statistics
-    const totalConsultations = allActivities.reduce((sum, a) => sum + a.consultationCount, 0);
-    const totalArticles = allActivities.reduce((sum, a) => sum + a.articlesRead.length, 0);
+    const totalConsultations = allActivities.reduce((sum: number, a: any) => sum + (a.consultationCount || 0), 0);
+    const totalArticles = allActivities.reduce((sum: number, a: any) => sum + (a.articlesRead?.length || 0), 0);
     
     // Active today
     const today = new Date().toISOString().split('T')[0];
-    const activeToday = allActivities.filter(a => a.activeDays.includes(today)).length;
+    const activeToday = allActivities.filter((a: any) => a.activeDays?.includes(today)).length;
     
     // Patients with phone
     const withPhone = patients.filter(p => p.phone && p.phone.length > 0).length;
@@ -71,8 +71,8 @@ const AdminDashboard = () => {
 
     // Get recent activity (last 10 users with activity)
     const recent = allActivities
-      .filter(a => a.consultationCount > 0 || a.articlesRead.length > 0)
-      .sort((a, b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime())
+      .filter((a: any) => (a.consultationCount || 0) > 0 || (a.articlesRead?.length || 0) > 0)
+      .sort((a: any, b: any) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime())
       .slice(0, 10);
     
     setRecentActivity(recent);

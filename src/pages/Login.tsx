@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
-import { verifyPassword } from '../lib/passwordUtils';
+import api from '../lib/api';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -34,65 +34,32 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      // Ambil daftar users dari localStorage
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const data = await api.login(formData.identifier, formData.password, selectedRole);
       
-      // Cek apakah identifier adalah email atau nomor telepon
-      const cleanIdentifier = formData.identifier.trim();
-      const isPhone = /^[0-9+\s\-\(\)]+$/.test(cleanIdentifier);
-      const cleanPhone = cleanIdentifier.replace(/[\s\-\(\)]/g, '');
-      
-      // Cari user berdasarkan email atau nomor telepon
-      const user = users.find((u: any) => {
-        if (isPhone) {
-          return u.phone === cleanPhone;
-        } else {
-          return u.email === cleanIdentifier;
-        }
-      });
-      
-      if (!user) {
-        setError(isPhone ? 'Nomor telepon tidak terdaftar! Silakan daftar terlebih dahulu.' : 'Email tidak terdaftar! Silakan daftar terlebih dahulu.');
-        setIsLoading(false);
-        return;
-      }
-      
-      // Verifikasi password
-      const isPasswordValid = await verifyPassword(formData.password, user.password);
-      
-      if (!isPasswordValid) {
-        setError('Anda memasukkan password yang salah!');
-        setIsLoading(false);
-        return;
-      }
-      
-      // Validasi role sesuai pilihan login
-      const userRole = (user.role as 'patient' | 'nurse' | undefined) || 'patient';
-      if (selectedRole === 'nurse' && userRole !== 'nurse') {
-        setError('Akun ini bukan akun Admin. Pilih "Login sebagai pasien" atau hubungi admin.');
-        setIsLoading(false);
-        return;
-      }
-      if (selectedRole === 'patient' && userRole === 'nurse') {
-        setError('Akun ini terdaftar sebagai Admin. Pilih "Login sebagai Admin".');
-        setIsLoading(false);
-        return;
-      }
-      
-      // Login berhasil - simpan user data (tanpa password)
-      localStorage.setItem('user', JSON.stringify({ 
-        email: user.email,
-        name: user.name,
-        phone: user.phone || '',
-        profileImage: user.profileImage || '',
-        role: userRole
+      // Login berhasil - simpan user data
+      localStorage.setItem('user', JSON.stringify({
+        email: data.user.email,
+        name: data.user.name,
+        phone: data.user.phone || '',
+        ktp: data.user.ktp || '',
+        profileImage: data.user.profileImage || '',
+        role: data.user.role || 'patient'
       }));
       
+      // Dispatch event for other components
+      window.dispatchEvent(new Event('userUpdated'));
+      
       setIsLoading(false);
-      navigate('/'); // Redirect ke homepage setelah login
-    } catch (error) {
+      
+      // Redirect berdasarkan role
+      if (data.user.role === 'nurse') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/');
+      }
+    } catch (error: any) {
       console.error('Login error:', error);
-      setError('Terjadi kesalahan saat login. Silakan coba lagi.');
+      setError(error.message || 'Terjadi kesalahan saat login. Silakan coba lagi.');
       setIsLoading(false);
     }
   };
@@ -104,7 +71,7 @@ const Login = () => {
           <div className="bg-white rounded-xl shadow-lg p-8">
             <div className="text-center mb-8">
               <h1 className="text-3xl font-bold text-slate-700 mb-2">Masuk ke Akun</h1>
-              <p className="text-gray-600">Selamat datang kembali di ViralCare AIDE</p>
+              <p className="text-gray-600">Selamat datang kembali di Puskesmas Wori Online</p>
             </div>
 
             {error && (

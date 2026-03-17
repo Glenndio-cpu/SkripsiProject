@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
-import { hashPassword } from '../lib/passwordUtils';
+import api from '../lib/api';
 import { User, ShieldCheck, Info } from 'lucide-react';
-
-// Kode akses untuk mendaftar sebagai admin
-const ADMIN_REGISTRATION_CODE = import.meta.env.VITE_ADMIN_REGISTRATION_CODE || '';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -13,6 +10,7 @@ const Register = () => {
     name: '',
     email: '',
     phone: '',
+    ktp: '',
     password: '',
     confirmPassword: '',
     adminCode: '' // Tambahan untuk kode admin
@@ -39,16 +37,18 @@ const Register = () => {
       return;
     }
 
+    if (!registerAsAdmin) {
+      const cleanKtp = formData.ktp.replace(/\D/g, '');
+      if (!/^\d{16}$/.test(cleanKtp)) {
+        setError('Nomor KTP pasien harus 16 digit angka');
+        return;
+      }
+    }
+
     // Validasi kode admin jika mendaftar sebagai admin
-    if (registerAsAdmin) {
-      if (!formData.adminCode) {
-        setError('Kode akses admin harus diisi');
-        return;
-      }
-      if (formData.adminCode !== ADMIN_REGISTRATION_CODE) {
-        setError('Kode akses admin salah! Hubungi super admin untuk mendapatkan kode.');
-        return;
-      }
+    if (registerAsAdmin && !formData.adminCode) {
+      setError('Kode akses admin harus diisi');
+      return;
     }
 
     // Validasi email format
@@ -81,62 +81,40 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      // Hash password sebelum disimpan
-      const hashedPassword = await hashPassword(formData.password);
-      
-      // Cek apakah email sudah terdaftar
-      const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
-      const emailExists = existingUsers.some((user: any) => user.email === formData.email);
-      
-      if (emailExists) {
-        setError('Email sudah terdaftar! Silakan login atau gunakan email lain.');
-        setIsLoading(false);
-        return;
-      }
-      
-      // Cek apakah nomor telepon sudah terdaftar
-      const phoneExists = existingUsers.some((user: any) => user.phone === cleanPhone);
-      
-      if (phoneExists) {
-        setError('Nomor telepon sudah terdaftar! Satu nomor hanya untuk satu akun.');
-        setIsLoading(false);
-        return;
-      }
-      
-      // Simpan user baru dengan password yang di-hash
-      const newUser = {
-        email: formData.email,
+      const data = await api.register({
         name: formData.name,
-        phone: cleanPhone,
-        password: hashedPassword,
-        createdAt: new Date().toISOString(),
-        role: registerAsAdmin ? 'nurse' : 'patient' // Role berdasarkan pilihan
-      };
-      
-      // Simpan ke daftar users
-      existingUsers.push(newUser);
-      localStorage.setItem('users', JSON.stringify(existingUsers));
-      
-      // Set user sebagai logged in (tanpa password)
-      localStorage.setItem('user', JSON.stringify({ 
         email: formData.email,
-        name: formData.name,
         phone: cleanPhone,
-        role: registerAsAdmin ? 'nurse' : 'patient'
+        ktp: registerAsAdmin ? undefined : formData.ktp.replace(/\D/g, ''),
+        password: formData.password,
+        role: registerAsAdmin ? 'nurse' : 'patient',
+        adminAccessCode: registerAsAdmin ? formData.adminCode : undefined
+      });
+      
+      // Set user sebagai logged in
+      localStorage.setItem('user', JSON.stringify({
+        email: data.user.email,
+        name: data.user.name,
+        phone: data.user.phone || '',
+        ktp: data.user.ktp || '',
+        profileImage: data.user.profileImage || '',
+        role: data.user.role || 'patient'
       }));
+      
+      // Dispatch event for other components
+      window.dispatchEvent(new Event('userUpdated'));
       
       setIsLoading(false);
       
-      // Success message berbeda untuk admin
       if (registerAsAdmin) {
         alert('Akun admin berhasil dibuat! Anda dapat mengakses Dashboard Admin.');
         navigate('/admin/dashboard');
       } else {
-        navigate('/'); // Redirect ke homepage setelah register
+        navigate('/');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registration error:', error);
-      setError('Terjadi kesalahan saat registrasi. Silakan coba lagi.');
+      setError(error.message || 'Terjadi kesalahan saat registrasi. Silakan coba lagi.');
       setIsLoading(false);
     }
   };
@@ -200,6 +178,13 @@ const Register = () => {
                   <p className="text-xs text-purple-700">
                     <Info className="w-3 h-3 inline mr-1" /> Anda akan mendaftar sebagai <strong>Admin/Petugas Kesehatan</strong>. 
                     Kode akses diperlukan untuk verifikasi.
+                  </p>
+                </div>
+              )}
+              {!registerAsAdmin && (
+                <div className="mt-3 p-3 bg-sky-50 border border-sky-200 rounded-lg">
+                  <p className="text-xs text-sky-700">
+                    <Info className="w-3 h-3 inline mr-1" /> Untuk akun <strong>Pasien</strong>, kolom <strong>Nomor KTP</strong> wajib diisi (16 digit angka).
                   </p>
                 </div>
               )}
@@ -268,6 +253,27 @@ const Register = () => {
                 </ul>
                 <p className="mt-1 text-xs text-red-600">Satu nomor hanya untuk satu akun</p>
               </div>
+
+              {!registerAsAdmin && (
+                <div>
+                  <label htmlFor="ktp" className="block text-sm font-medium text-gray-700 mb-2">
+                    Nomor KTP Pasien <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="ktp"
+                    name="ktp"
+                    value={formData.ktp}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none transition"
+                    placeholder="16 digit nomor KTP"
+                    maxLength={16}
+                    inputMode="numeric"
+                    required={!registerAsAdmin}
+                  />
+                  <p className="mt-1 text-xs text-gray-500">Digunakan untuk verifikasi identitas pasien.</p>
+                </div>
+              )}
 
               {/* Admin Code Field - Only show if registerAsAdmin is true */}
               {registerAsAdmin && (

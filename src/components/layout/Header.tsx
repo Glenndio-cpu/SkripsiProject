@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaClinicMedical, FaUser, FaSignOutAlt } from "react-icons/fa";
 import { Megaphone, ChevronDown, LogIn, UserPlus, Menu, X } from 'lucide-react';
+import api from '../../lib/api';
 
 interface HeaderProps {
   onMenuToggle?: () => void;
@@ -53,7 +54,8 @@ const Header = ({ onMenuToggle, sidebarOpen = false }: HeaderProps) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await api.logout().catch(() => undefined);
     localStorage.removeItem('user');
     setUser(null);
     setIsDropdownOpen(false);
@@ -61,14 +63,24 @@ const Header = ({ onMenuToggle, sidebarOpen = false }: HeaderProps) => {
     navigate('/');
   };
 
-  // Nav links for desktop
-  const navLinks = [
-    { to: '/', label: 'Beranda' },
-    { to: '/tentang', label: 'Tentang' },
-    { to: '/penyakit', label: 'Info Penyakit' },
-    { to: '/konsultasi', label: 'Konsultasi' },
-    { to: '/kontak', label: 'Kontak' },
-  ];
+  // Nav links for desktop – adjust based on role
+  const isNurse = user?.role === 'nurse';
+  const navLinks = isNurse
+    ? [
+        { to: '/', label: 'Beranda' },
+        { to: '/admin/dashboard', label: 'Dashboard' },
+        { to: '/admin/patients', label: 'Kelola Pasien' },
+        { to: '/admin/rag', label: 'Kelola AI' },
+        { to: '/admin/announcements', label: 'Pengumuman' },
+        { to: '/kontak', label: 'Kontak' },
+      ]
+    : [
+        { to: '/', label: 'Beranda' },
+        { to: '/tentang', label: 'Tentang' },
+        { to: '/penyakit', label: 'Info Penyakit' },
+        { to: '/konsultasi', label: 'Konsultasi' },
+        { to: '/kontak', label: 'Kontak' },
+      ];
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -155,6 +167,13 @@ const Header = ({ onMenuToggle, sidebarOpen = false }: HeaderProps) => {
                     <div className="px-4 py-2.5 border-b border-gray-100">
                       <p className="text-sm font-semibold text-gray-800 truncate">{user.name}</p>
                       <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                      <span className={`inline-block mt-1 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                        user.role === 'nurse'
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'bg-sky-100 text-sky-700'
+                      }`}>
+                        {user.role === 'nurse' ? 'Admin' : 'Pasien'}
+                      </span>
                     </div>
 
                     {user?.role === 'nurse' && (

@@ -3,14 +3,13 @@ import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
 import Sidebar from './Sidebar';
-import AIAssistant from '../AIAssistant';
 
 interface LayoutProps {
   children?: React.ReactNode;
   hideAIAssistant?: boolean;
 }
 
-const Layout = ({ children, hideAIAssistant = false }: LayoutProps) => {
+const Layout = ({ children }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const scrollToTop = () => {
@@ -59,8 +58,6 @@ const Layout = ({ children, hideAIAssistant = false }: LayoutProps) => {
         </main>
         
         <Footer scrollToTop={scrollToTop} />
-        {/* AIAssistant dinonaktifkan - gunakan halaman Konsultasi untuk chat */}
-        {/* {!hideAIAssistant && <AIAssistant />} */}
       </div>
     </div>
   );

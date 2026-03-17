@@ -66,6 +66,12 @@ const Konsultasi = () => {
     isClear: boolean;
     isEmergency: boolean;
   } => {
+    const greetingPatterns = [
+      /^(halo|hai|hi|hello|hey|selamat|assalamu|apa\s+kabar|permisi|terima\s+kasih|makasih|ok|oke|ya|iya|tidak|baik|siapa)/i
+    ];
+
+    const isGreeting = greetingPatterns.some(pattern => pattern.test(message.trim()));
+
     const healthKeywords = [
       'sakit', 'penyakit', 'gejala', 'obat', 'dokter', 'rumah sakit', 'konsumsi', 'mengonsumsi',
       'demam', 'batuk', 'pilek', 'diare', 'mual', 'pusing', 'vaksin', 'alergi',
@@ -86,7 +92,7 @@ const Konsultasi = () => {
     );
 
     const words = message.trim().toLowerCase().split(/\s+/);
-    const isClear = words.length >= 2 || isHealth;
+    const isClear = isGreeting || words.length >= 2 || isHealth;
 
     return {
       isHealthRelated: isHealth,
@@ -189,7 +195,7 @@ const Konsultasi = () => {
 
   const sendToWhatsApp = () => {
     const phoneNumber = import.meta.env.VITE_PUSKESMAS_WHATSAPP || '6289657398733';
-    const message = `Berikut ringkasan konsultasi Anda dengan ViralCare AIDE:\n\n${summaryToSend}`;
+    const message = `Berikut ringkasan konsultasi Anda dengan Puskesmas Wori Online:\n\n${summaryToSend}`;
     window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, '_blank');
     setShowWhatsAppModal(false);
   };
@@ -462,15 +468,15 @@ const Konsultasi = () => {
                 <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
                   <h3 className="font-semibold text-slate-700 text-sm mb-1">Chatbot AI Belum Dikonfigurasi</h3>
-                  <p className="text-xs text-slate-500 mb-3">API Key Gemini belum diatur. Chatbot tidak dapat memberikan respons AI.</p>
+                  <p className="text-xs text-slate-500 mb-3">Layanan AI belum aktif. Hubungi administrator untuk mengaktifkan.</p>
                   <div className="bg-white border border-amber-100 rounded-lg p-3 mb-3 text-xs">
                     <p className="font-medium text-slate-600 mb-2 flex items-center gap-1"><Wrench className="w-3.5 h-3.5" /> Untuk Admin/Developer:</p>
                     <ol className="list-decimal list-inside space-y-1 text-slate-500 ml-1">
                       <li>Buka <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="underline text-sky-500 hover:text-sky-600">Google AI Studio</a></li>
                       <li>Login & klik "Create API Key" (GRATIS)</li>
-                      <li>Copy API key, tambahkan ke file <code className="bg-slate-100 px-1 rounded text-slate-600">.env</code></li>
-                      <li>Format: <code className="bg-slate-100 px-1 rounded text-slate-600">VITE_GEMINI_API_KEY=your_key</code></li>
-                      <li>Restart development server</li>
+                      <li>Tambahkan ke file <code className="bg-slate-100 px-1 rounded text-slate-600">backend/.env</code></li>
+                      <li>Format: <code className="bg-slate-100 px-1 rounded text-slate-600">GEMINI_API_KEY=your_key</code></li>
+                      <li>Restart backend server</li>
                     </ol>
                   </div>
                   <div className="bg-white border border-amber-100 rounded-lg p-3 text-xs">
