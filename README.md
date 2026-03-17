@@ -94,14 +94,3 @@ VITE_PUSKESMAS_ADDRESS=Universitas Klabat, Manado
 | `/admin/patients` | Manajemen Pasien | Admin/Perawat |
 | `/admin/broadcast` | Broadcast WhatsApp | Admin/Perawat |
 | `/admin/register` | Registrasi Admin | Admin/Perawat |
-
-## SDGs
-
-Aplikasi ini mendukung:
-- **SDG 3** — Good Health and Well-being
-- **SDG 12** — Responsible Consumption and Production
-
-## Penulis
-
-**Glenndio Umboh** — Universitas Klabat
-
